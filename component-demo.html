@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <title>Mol* PDBe Wrapper</title>
+        
+        <!-- Required for IE11 -->
+        <script src="https://cdn.jsdelivr.net/npm/babel-polyfill/dist/polyfill.min.js"></script>
+        <!-- Web component polyfill (only loads what it needs) -->
+        <script src="https://cdn.jsdelivr.net/npm/@webcomponents/webcomponentsjs/webcomponents-lite.js" charset="utf-8"></script>
+        <!-- Required to polyfill modern browsers as code is ES5 for IE... -->
+        <script src="https://cdn.jsdelivr.net/npm/@webcomponents/webcomponentsjs/custom-elements-es5-adapter.js" charset="utf-8"></script>
+
+        <!-- d3.js dependency script -->
+        <script src="https://cdn.jsdelivr.net/npm/d3@5.9.2"></script>
+
+        <link rel="stylesheet" type="text/css" href="build/pdb-rna-viewer-0.1.0.css">
+        <script type="text/javascript" src="build/pdb-rna-viewer-component-0.1.0.js"></script>
+        <style>
+            #pdbRnaViewer{
+              width:500px;
+              height: 500px;
+              position:relative;
+            }
+        </style>
+    </head>
+    <body>
+
+      <h4>PDB RNA Viewer Plugin Demo</h4>
+    
+      <!-- PDB RNA Viewer container -->
+      <div id="pdbRnaViewer">
+        <pdb-rna-viewer pdb-id="3l3c" entity-id="3" chain-id="R"></pdb-rna-viewer>
+      </div>
+  
+    </body>
+</html>

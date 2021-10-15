@@ -1,0 +1,67 @@
+{
+  "name": "pdb-rna-viewer",
+  "version": "0.1.0",
+  "description": "The PDB RNA viewer depicts the secondary structure of a RNA in a 2D representation.",
+  "keywords": [
+    "BioJS",
+    "PDB component",
+    "PDB RNA Viewer",
+    "R2DT",
+    "PDBe",
+    "Rfam"
+  ],
+  "homepage": "https://github.com/mandarsd/pdb-rna-viewer#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mandarsd/pdb-rna-viewer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mandarsd/pdb-rna-viewer/issues"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\"",
+    "build": "npm run build-tsc && npm run build-webpack && npm run bundle-webcomponent",
+    "build-tsc": "concurrently \"tsc --incremental\" \"tsc --build tsconfig.json --incremental\"",
+    "webpack": "webpack",
+    "build-webpack": "webpack --mode production --config ./webpack.config.js",
+    "watch": "concurrently --names \"tsc,srv,ext,wpc\" --kill-others \"npm:watch-tsc\" \"npm:watch-webpack\"",
+    "watch-tsc": "tsc --watch --incremental",
+    "watch-webpack": "webpack -w --mode development --display minimal",
+    "serve": "http-server -p 1338",
+    "bundle-webcomponent": "gulp"
+  },
+  "author": {
+    "name": "Mandar Deshpande",
+    "email": "mandar@ebi.ac.uk"
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@babel/core": "^7.10.3",
+    "@babel/plugin-transform-runtime": "^7.10.3",
+    "@babel/preset-env": "^7.10.3",
+    "@babel/runtime": "^7.10.3",
+    "babel-loader": "^8.1.0",
+    "concurrently": "^5.2.0",
+    "cpx2": "^2.0.0",
+    "css-loader": "^3.5.3",
+    "del": "^5.1.0",
+    "extra-watch-webpack-plugin": "^1.0.3",
+    "file-loader": "^6.0.0",
+    "gulp": "^4.0.2",
+    "gulp-concat": "^2.6.1",
+    "gulp-header": "^2.0.9",
+    "http-server": "^0.12.3",
+    "mini-css-extract-plugin": "^0.9.0",
+    "node-sass": "^4.14.1",
+    "raw-loader": "^4.0.1",
+    "sass-loader": "^8.0.2",
+    "style-loader": "^1.2.1",
+    "typescript": "^3.9.3",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.12"
+  },
+  "dependencies": {
+    "lit-element": "^2.2.1",
+    "tslib": "^2.3.1"
+  }
+}

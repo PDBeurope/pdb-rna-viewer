@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+
+    <style>
+        #pdb-rna-viewer {
+          width: 500px;
+          height: 500px;
+        }
+    </style>
+    <!-- PDB RNA Viewer CSS -->
+    <link rel="stylesheet" type="text/css" href="build/pdb-rna-viewer-0.1.0.css">
+
+  </head>
+
+  <body>
+    <h4>PDB RNA Viewer Plugin Demo</h4>
+
+    <div style="height: 500px; position: relative;clear: right;">
+      <protvista-pdb entry-id="3l3c" entity-id="3"></protvista-pdb>
+    </div>
+    
+    <!-- PDB RNA Viewer container -->
+    <div id="pdb-rna-viewer" style="float: left;"></div>
+
+    <div style="height: 500px; width: 500px; position: relative;margin-left: 600px;">
+      <pdbe-molstar molecule-id="3l3c"></pdbe-molstar>
+    </div>
+    
+    <!-- d3.js dependency script -->
+    <script src="https://cdn.jsdelivr.net/npm/d3@5.9.2"></script>
+    
+    <!-- PDB RNA Viewer JS -->
+    <script type="text/javascript" src="build/pdb-rna-viewer-plugin-0.1.0.js"></script>
+    <script>
+        //Create plugin instance
+        const pluginInstance = new PdbRnaViewerPlugin();
+
+        //Get element from HTML/Template to place the view
+        const viewContainer = document.getElementById('pdb-rna-viewer');
+
+        const options = {
+          pdbId: '3l3c',
+          entityId: '3',
+          chainId: 'R',
+          subscribeEvents: true
+        } 
+    
+        //Call render method to display the 2D view
+        pluginInstance.render(viewContainer, options);
+      
+    </script>
+  </body>
+
+</html>
