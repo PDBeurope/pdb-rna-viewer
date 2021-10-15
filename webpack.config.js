@@ -7,7 +7,7 @@ const PACKAGE_ROOT_PATH = process.cwd();
 const PKG_JSON = require(path.join(PACKAGE_ROOT_PATH, "package.json"));
 
 const pluginConfig = {
-  node: { fs: 'empty' },
+  target: void 0,
   entry: path.resolve(__dirname, `lib/index.js`),
   output: { filename: `${PKG_JSON.name}-plugin-${PKG_JSON.version}.js`, path: path.resolve(__dirname, `build/`) },
   module: {
@@ -30,8 +30,7 @@ const pluginConfig = {
   },
   watchOptions: {
       aggregateTimeout: 750
-  },
-  devtool: ''
+  }
 }
 
 const componentConfig = {
