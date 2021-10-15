@@ -22,14 +22,14 @@ export class UiActionsService {
         .on('wheel.zoom', null)
         .on('mousewheel.zoom', null);
 
-        // add zoom-in button behaviour
+        // zoom-in button behaviour
         d3.select(`#rnaTopologyZoomIn-${this.pdbId}`)
         .on("click", () =>{
             d3.event.stopPropagation();
             zoom1.scaleBy(d3.select(`.rnaTopoSvg_${this.pdbId}`).transition().duration(300), 1.2);
         });
 
-        // add reset button behaviour
+        // zoom-out button behaviour
         d3.select(`#rnaTopologyZoomOut-${this.pdbId}`)
         .on("click", () => {
             d3.event.stopPropagation();
@@ -46,14 +46,14 @@ export class UiActionsService {
             zoom1.scaleBy(d3.select(`.rnaTopoSvg_${this.pdbId}`).transition().duration(300), 0.8);
         });
 
-        // add reset button behaviour
+        // reset button behaviour
         d3.select(`#rnaTopologyReset-${this.pdbId}`)
         .on("click", () => {
             d3.event.stopPropagation();
             d3.select(`.rnaTopoSvg_${this.pdbId}`).transition().duration(300).call(zoom1.transform, d3.zoomIdentity);
         });
 
-        // add selection and highlight reset on canvas click
+        // selection and highlight reset on canvas click
         d3.select(`.pdb-rna-view-container-${this.pdbId}`)
         .on("click", () => {
             d3.event.stopPropagation();
@@ -83,8 +83,6 @@ export class UiActionsService {
     static unSelectPath(event: any, pdbId: string, label_seq_id: number, isUnobserved: boolean, color?: string): void {
         event.stopImmediatePropagation();
         this.clearHighlight(pdbId);
-        // const strokeColor = color || '#000';
-        // this.colorPath(pdbId, label_seq_id, strokeColor, 'unselect');
         const ttEle = document.getElementById(`${pdbId}-rnaTopologyTooltip`);
         ttEle!.style.display = 'none';
 
@@ -108,16 +106,6 @@ export class UiActionsService {
         newPathEle.setAttribute('stroke', strokeColor);
         newPathEle.setAttribute('d', pathEleDim);
         highlightSvg!.appendChild(newPathEle);
-
-        // let strokeColor = color || 'orange';
-        // if(type === 'unselect') {
-        //     strokeColor = pathElement.dataset.selectionColor ? pathElement.dataset.selectionColor : strokeColor;
-        // }
-        // pathElement.setAttribute("stroke", strokeColor);
-        // if(type && type !== 'unselect') pathElement.classList.add(`${type}-applied`);
-        // if(type === 'selection') {
-        //     pathElement.setAttribute("data-selection-color", strokeColor);
-        // }
     }
 
     static clearHighlight(pdbId: string) {
