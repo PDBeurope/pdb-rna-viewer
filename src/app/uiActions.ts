@@ -1,6 +1,7 @@
 import { CustomEvents } from './customEvents';
 
 declare var d3: any;
+
 export class UiActionsService {
     pdbId: string;
     static pdbevents: any = CustomEvents.create(['PDB.RNA.viewer.click', 'PDB.RNA.viewer.mouseover', 'PDB.RNA.viewer.mouseout']);
@@ -11,13 +12,15 @@ export class UiActionsService {
 
     applyButtonActions() {
 
+        const svgEle = d3.select('.rnaTopoSvg');
+
         // initialize SVG zoom behaviour and remove mouse wheel zoom events
         const zoom1 = d3.zoom().on('zoom', () => {
             d3.select(`.rnaTopoSvg_${this.pdbId}`).attr("transform", d3.event.transform)
             d3.select(`.rnaTopoSvgHighlight_${this.pdbId}`).attr("transform", d3.event.transform)
             d3.select(`.rnaTopoSvgSelection_${this.pdbId}`).attr("transform", d3.event.transform)
         });
-        d3.select(`.rnaTopoSvg_${this.pdbId}`).call(zoom1)
+        d3.select(`.rnaTopoSvg`).call(zoom1)
         .on('dblclick.zoom', null)
         .on('wheel.zoom', null)
         .on('mousewheel.zoom', null);
@@ -26,7 +29,7 @@ export class UiActionsService {
         d3.select(`#rnaTopologyZoomIn-${this.pdbId}`)
         .on("click", () =>{
             d3.event.stopPropagation();
-            zoom1.scaleBy(d3.select(`.rnaTopoSvg_${this.pdbId}`).transition().duration(300), 1.2);
+            zoom1.scaleBy(svgEle.transition().duration(300), 1.2);
         });
 
         // zoom-out button behaviour
@@ -35,22 +38,23 @@ export class UiActionsService {
             d3.event.stopPropagation();
             const rnaTopoSvg = d3.select(`.rnaTopoSvg_${this.pdbId}`);
             const transformValue = rnaTopoSvg._groups[0][0].getAttribute('transform');
+
             if(transformValue && transformValue !== '') {
                 if(transformValue === null) return;
                 const transformValMatch = +transformValue.match(/.+scale\((.*)\)/)[1];
                 if(transformValMatch <= 1 || (transformValMatch - 0.3 <= 1)) {
-                    d3.select(`.rnaTopoSvg_${this.pdbId}`).transition().duration(300).call(zoom1.transform, d3.zoomIdentity);
+                    svgEle.transition().duration(300).call(zoom1.transform, d3.zoomIdentity);
                     return;
                 }
             }
-            zoom1.scaleBy(d3.select(`.rnaTopoSvg_${this.pdbId}`).transition().duration(300), 0.8);
+            zoom1.scaleBy(d3.select(`.rnaTopoSvg`).transition().duration(300), 0.8);
         });
 
         // reset button behaviour
         d3.select(`#rnaTopologyReset-${this.pdbId}`)
         .on("click", () => {
             d3.event.stopPropagation();
-            d3.select(`.rnaTopoSvg_${this.pdbId}`).transition().duration(300).call(zoom1.transform, d3.zoomIdentity);
+            svgEle.transition().duration(300).call(zoom1.transform, d3.zoomIdentity);
         });
 
         // selection and highlight reset on canvas click

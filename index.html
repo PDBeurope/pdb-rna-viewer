@@ -17,16 +17,8 @@
   <body>
     <h4>PDB RNA Viewer Plugin Demo</h4>
 
-    <div style="height: 500px; position: relative;clear: right;">
-      <protvista-pdb entry-id="3l3c" entity-id="3"></protvista-pdb>
-    </div>
-    
     <!-- PDB RNA Viewer container -->
     <div id="pdb-rna-viewer" style="float: left;"></div>
-
-    <div style="height: 500px; width: 500px; position: relative;margin-left: 600px;">
-      <pdbe-molstar molecule-id="3l3c"></pdbe-molstar>
-    </div>
     
     <!-- d3.js dependency script -->
     <script src="https://cdn.jsdelivr.net/npm/d3@5.9.2"></script>
@@ -41,9 +33,9 @@
         const viewContainer = document.getElementById('pdb-rna-viewer');
 
         const options = {
-          pdbId: '3l3c',
-          entityId: '3',
-          chainId: 'R',
+          pdbId: '1c2w',
+          entityId: '1',
+          chainId: 'B',
           subscribeEvents: true
         } 
     

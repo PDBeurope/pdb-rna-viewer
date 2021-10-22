@@ -48,22 +48,24 @@ export class UiTemplateService {
 
         return `
         <div style="width:100%;height:100%;z-index:0;position:absolute;">
-            <svg class="rnaTopoSvgSelection rnaTopoSvgSelection_${this.pluginOptions.pdbId}" 
-            preserveAspectRatio="xMidYMid meet" 
+            <svg preserveAspectRatio="xMidYMid meet" 
             viewBox="0 0 ${apiData.dimensions.width} ${apiData.dimensions.height}" 
-            style="width:100%;height:100%;position:relative;"></svg>
+            style="width:100%;height:100%;position:relative;">
+                <g class="rnaTopoSvgSelection rnaTopoSvgSelection_${this.pluginOptions.pdbId}"></g>
+            </svg>
         </div>
         <div style="width:100%;height:100%;z-index:1;position:absolute;">
-            <svg class="rnaTopoSvgHighlight rnaTopoSvgHighlight_${this.pluginOptions.pdbId}" 
-            preserveAspectRatio="xMidYMid meet" 
+            <svg preserveAspectRatio="xMidYMid meet" 
             viewBox="0 0 ${apiData.dimensions.width} ${apiData.dimensions.height}" 
-            style="width:100%;height:100%;position:relative;"></svg>
+            style="width:100%;height:100%;position:relative;">
+                <g class="rnaTopoSvgHighlight rnaTopoSvgHighlight_${this.pluginOptions.pdbId}"></g>
+            </svg>
         </div>
         <div style="width:100%;height:100%;z-index:2;position:absolute;">
-            <svg class="rnaTopoSvg rnaTopoSvg_${this.pluginOptions.pdbId}" 
-                preserveAspectRatio="xMidYMid meet" 
+            <svg  class="rnaTopoSvg" preserveAspectRatio="xMidYMid meet" 
                 viewBox="0 0 ${apiData.dimensions.width} ${apiData.dimensions.height}" 
-                style="width:100%;height:100%;">${pathStrs.join('')}
+                style="width:100%;height:100%;">
+                    <g class="rnaTopoSvg_${this.pluginOptions.pdbId}">${pathStrs.join('')}</g>
             </svg>
         </div>`;
     }
