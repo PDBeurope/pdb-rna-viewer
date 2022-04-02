@@ -1,11 +1,14 @@
 import { CustomEvents } from './customEvents';
 
 declare var d3: any;
-
 export class UiActionsService {
     pdbId: string;
     static pdbevents: any = CustomEvents.create(['PDB.RNA.viewer.click', 'PDB.RNA.viewer.mouseover', 'PDB.RNA.viewer.mouseout']);
-
+    private static lastSelected: number = -1
+    private static selected: number = -1
+    private static selectedColor: string = ''
+    private static fillColor: string = ''
+    private static expanded: boolean = false
     constructor(pdbId: string) {
         this.pdbId = pdbId;
     }
@@ -13,7 +16,6 @@ export class UiActionsService {
     applyButtonActions() {
 
         const svgEle = d3.select('.rnaTopoSvg');
-
         // initialize SVG zoom behaviour and remove mouse wheel zoom events
         const zoom1 = d3.zoom().on('zoom', () => {
             d3.select(`.rnaTopoSvg_${this.pdbId}`).attr("transform", d3.event.transform)
@@ -38,7 +40,6 @@ export class UiActionsService {
             d3.event.stopPropagation();
             const rnaTopoSvg = d3.select(`.rnaTopoSvg_${this.pdbId}`);
             const transformValue = rnaTopoSvg._groups[0][0].getAttribute('transform');
-
             if(transformValue && transformValue !== '') {
                 if(transformValue === null) return;
                 const transformValMatch = +transformValue.match(/.+scale\((.*)\)/)[1];
@@ -67,59 +68,92 @@ export class UiActionsService {
 
     }
 
-    static selectPath(event: MouseEvent, pdbId: string, label_seq_id: number, residue: string, eventType: 'click' | 'mouseover', isUnobserved: boolean, color?: string): void {
-        event.stopImmediatePropagation();
-        this.clearHighlight(pdbId);
-        this.colorPath(pdbId, label_seq_id, color, 'highlight');
+    static selectNucleotide = function(pdbId: string, entityId: string, label_seq_id: number, eventType: 'click' | 'mouseover', isUnobserved: boolean, residue?: string, event?: MouseEvent, color?: string): void {
+        event?.stopImmediatePropagation();
+        UiActionsService.clearHighlight(pdbId);
+        UiActionsService.colorNucleotide(pdbId, label_seq_id, color, 'highlight');
+        UiActionsService.selected = label_seq_id;
+        UiActionsService.lastSelected = label_seq_id;
         const ttEle = document.getElementById(`${pdbId}-rnaTopologyTooltip`);
         ttEle!.style.display = 'inline';
-        ttEle!.innerHTML = `<strong>${isUnobserved ? 'Unobserved ' : ''}Residue ${residue} ${label_seq_id}</strong>`;
+        ttEle!.innerHTML = `<strong>${isUnobserved ? 'Unobserved ' : ''}Residue ${residue ? residue : ''} ${label_seq_id}</strong>`;
 
         if(!isUnobserved) {
             const eventName: any = (eventType === 'click') ? 'PDB.RNA.viewer.click' : 'PDB.RNA.viewer.mouseover';
-            const evData = { pdbId, label_seq_id }
-            const pathElement: any = document.querySelector(`.rnaview_${pdbId}_${label_seq_id}`);
-            CustomEvents.dispatchCustomEvent(this.pdbevents[eventName], evData, pathElement);
+            const evData = { pdbId, label_seq_id, entityId }
+            const textElement: any = document.querySelector(`.rnaview_${pdbId}_${label_seq_id}`);
+            CustomEvents.dispatchCustomEvent(UiActionsService.pdbevents[eventName], evData, textElement);
         }
 
     }
 
-    static unSelectPath(event: any, pdbId: string, label_seq_id: number, isUnobserved: boolean, color?: string): void {
-        event.stopImmediatePropagation();
+    static unSelectNucleotide(pdbId: string, entityId: string, label_seq_id: number, isUnobserved: boolean, event?: any, color?: string): void {
+        event?.stopImmediatePropagation();
         this.clearHighlight(pdbId);
         const ttEle = document.getElementById(`${pdbId}-rnaTopologyTooltip`);
         ttEle!.style.display = 'none';
 
         if(!isUnobserved) {
-            const evData = { pdbId, label_seq_id }
-            const pathElement: any = document.querySelector(`.rnaview_${pdbId}_${label_seq_id}`);
-            CustomEvents.dispatchCustomEvent(this.pdbevents['PDB.RNA.viewer.mouseout'], evData, pathElement);
+            if(label_seq_id == undefined) {
+                label_seq_id = this.lastSelected;
+            }
+            if(label_seq_id > -1) {
+                const evData = { pdbId, label_seq_id, entityId }
+                const textElement: any = document.querySelector(`.rnaview_${pdbId}_${label_seq_id}`);
+                CustomEvents.dispatchCustomEvent(this.pdbevents['PDB.RNA.viewer.mouseout'], evData, textElement);
+            }
         }
     }
 
-    static colorPath(pdbId: string, label_seq_id: number, color?: string, type?: 'selection' | 'highlight') {
-        const pathElement: any = document.querySelector(`.rnaview_${pdbId}_${label_seq_id}`);
-        const pathEleDim = pathElement.getAttribute('d');
-        const pathEleStrokeWidth = parseInt(pathElement.getAttribute('stroke-width'));
-
+    static colorNucleotide = function(pdbId: string, label_seq_id: number, color?: string, type?: 'selection' | 'highlight', shape?: string) {
         let strokeColor = color || 'orange';
-        const svgClassPrefix = (type === 'highlight') ? 'rnaTopoSvgHighlight' : 'rnaTopoSvgSelection';
-        const highlightSvg = document.querySelector(`.${svgClassPrefix}_${pdbId}`);
-        const newPathEle = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        newPathEle.setAttribute('stroke-width', (pathEleStrokeWidth * 3).toString());
-        newPathEle.setAttribute('stroke', strokeColor);
-        newPathEle.setAttribute('d', pathEleDim);
-        highlightSvg!.appendChild(newPathEle);
+        let nucleotide = (<any>document.querySelector(`svg.rnaTopoSvg`))!.getElementsByClassName(`rnaviewEle rnaviewEle_${pdbId} rnaview_${pdbId}_${label_seq_id}`)[0]
+        if(nucleotide.nodeName == 'path') {
+            nucleotide.setAttribute("stroke",strokeColor);
+        } else if(nucleotide.nodeName == 'text'){
+            nucleotide.setAttribute("fill",strokeColor);
+        }      
     }
-
+    static showCheckboxes() {
+        var checkboxes = document.getElementById("checkboxes");
+        if (!this.expanded) {
+            checkboxes!.style.display = "block";
+            this.expanded = true;
+        } else {
+            checkboxes!.style.display = "none";
+            this.expanded = false;
+        }
+    }
     static clearHighlight(pdbId: string) {
-        document.querySelector(`.rnaTopoSvgHighlight_${pdbId}`)!.innerHTML = "";
+        if (this.selected > -1) {
+            (<any>document.querySelector(`svg.rnaTopoSvg`))!.getElementsByClassName(`rnaviewEle rnaviewEle_${pdbId} rnaview_${pdbId}_${this.selected}`)[0].setAttribute("fill","323232");
+            this.selected = -1;
+        }
     }
 
     static clearSelection(pdbId: string) {
         document.querySelector(`.rnaTopoSvgSelection_${pdbId}`)!.innerHTML = "";
     }
 
+    static showTooltip(evt: any, text: string, path: string, color: string, fill: string) {
+        const tooltip = document.getElementById("tooltip");
+        tooltip!.id = "tooltip"
+        tooltip!.innerHTML = text;
+        tooltip!.style.display = "block";
+        tooltip!.style.left = evt.layerX + 'px';
+        tooltip!.style.top = evt.layerY + 'px'; 
+        this.selectedColor = color;
+        this.fillColor = fill;
+        (<any>document.querySelector(`svg.rnaTopoSvg`))!.getElementsByClassName(path)[0].setAttribute("stroke","orange");
+        (<any>document.querySelector(`svg.rnaTopoSvg`))!.getElementsByClassName(path)[0].setAttribute("fill","orange");
+      }
+      
+    static hideTooltip(path: string) {
+        var tooltip = document.getElementById("tooltip");
+        tooltip!.style.display = "none";
+        (<any>document.querySelector(`svg.rnaTopoSvg`))!.getElementsByClassName(path)[0].setAttribute("stroke", `${this.selectedColor}`);
+        (<any>document.querySelector(`svg.rnaTopoSvg`))!.getElementsByClassName(path)[0].setAttribute("fill", `${this.fillColor}`);
+    }
 }
 
 (window as any).UiActionsService = UiActionsService;

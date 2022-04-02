@@ -8,6 +8,9 @@
           width: 500px;
           height: 500px;
         }
+        #mainMenu {
+          width: 502px;
+        }
     </style>
     <!-- PDB RNA Viewer CSS -->
     <link rel="stylesheet" type="text/css" href="build/pdb-rna-viewer-0.1.0.css">
@@ -16,7 +19,7 @@
 
   <body>
     <h4>PDB RNA Viewer Plugin Demo</h4>
-
+    
     <!-- PDB RNA Viewer container -->
     <div id="pdb-rna-viewer" style="float: left;"></div>
     
@@ -36,8 +39,7 @@
           pdbId: '1c2w',
           entityId: '1',
           chainId: 'B',
-          subscribeEvents: true
-        } 
+          subscribeEvents: true        } 
     
         //Call render method to display the 2D view
         pluginInstance.render(viewContainer, options);
