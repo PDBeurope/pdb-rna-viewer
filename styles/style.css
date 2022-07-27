@@ -2,9 +2,9 @@
   display: inline-block;
   position: relative;
   width: 100%;
-  height: 100%;
-  border: 1px solid #4b4a4a;
+  height: 93%;
   overflow: hidden;
+  border: 1px solid #4b4a4a;
   background-color: #fff;
 }
 .pdb-rna-view-error {
@@ -74,21 +74,14 @@
 
 #checkboxes {
   display: none;
-  border: 1px #dadada solid;
   background:rgb(255, 255, 255);
+  border: 0.5px #dadada solid;
+  float: right;
+  width: 30%;
 }
 
 #checkboxes label {
-  display: block;
   text-align: left;
   color: rgb(0,0,0);
 }
 
-#checkboxes label {
-  text-align: left;
-  color: rgb(0,0,0);
-}
-
-#checkboxes label:hover {
-  background-color: #5f6061;
-}
