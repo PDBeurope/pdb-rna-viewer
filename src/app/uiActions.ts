@@ -100,7 +100,7 @@ export class UiActionsService {
             if(label_seq_id > -1) {
                 const evData = { pdbId, label_seq_id, entityId }
                 const textElement: any = document.querySelector(`.rnaview_${pdbId}_${label_seq_id}`);
-                CustomEvents.dispatchCustomEvent(this.pdbevents['PDB.RNA.viewer.mouseout'], evData, textElement);
+                CustomEvents.dispatchCustomEvent(UiActionsService.pdbevents['PDB.RNA.viewer.mouseout'], evData, textElement);
             }
         }
     }
@@ -108,11 +108,27 @@ export class UiActionsService {
     static colorNucleotide = function(pdbId: string, label_seq_id: number, color?: string, type?: 'selection' | 'highlight', shape?: string) {
         let strokeColor = color || 'orange';
         let nucleotide = (<any>document.querySelector(`svg.rnaTopoSvg`))!.getElementsByClassName(`rnaviewEle rnaviewEle_${pdbId} rnaview_${pdbId}_${label_seq_id}`)[0]
-        if(nucleotide.nodeName == 'path') {
-            nucleotide.setAttribute("stroke",strokeColor);
-        } else if(nucleotide.nodeName == 'text'){
-            nucleotide.setAttribute("fill",strokeColor);
-        }      
+        if(nucleotide) {
+            if(nucleotide.nodeName == 'path') {
+                if(type == 'highlight') {
+                    if(nucleotide.getAttribute("stroke")) {
+                        UiActionsService.selectedColor = nucleotide.getAttribute("stroke")
+                    } else {
+                        UiActionsService.selectedColor = "#323232"
+                    }
+                }
+                nucleotide.setAttribute("stroke",strokeColor);
+            } else if(nucleotide.nodeName == 'text'){
+                if(type == 'highlight') {
+                    if(nucleotide.getAttribute("fill")) {
+                        UiActionsService.selectedColor = nucleotide.getAttribute("fill")
+                    } else {
+                        UiActionsService.selectedColor = "#323232"
+                    }
+                }
+                nucleotide.setAttribute("fill",strokeColor);
+            }
+        }
     }
     static showCheckboxes() {
         var checkboxes = document.getElementById("checkboxes");
@@ -126,7 +142,20 @@ export class UiActionsService {
     }
     static clearHighlight(pdbId: string) {
         if (this.selected > -1) {
-            (<any>document.querySelector(`svg.rnaTopoSvg`))!.getElementsByClassName(`rnaviewEle rnaviewEle_${pdbId} rnaview_${pdbId}_${this.selected}`)[0].setAttribute("fill","323232");
+            var nucleotide = (<any>document.querySelector(`svg.rnaTopoSvg`))!.getElementsByClassName(`rnaviewEle rnaviewEle_${pdbId} rnaview_${pdbId}_${this.selected}`)[0]
+            if(this.selectedColor) {
+                if(nucleotide.nodeName == 'text') {
+                    nucleotide.setAttribute("fill",UiActionsService.selectedColor);
+                } else {
+                   nucleotide.setAttribute("stroke",UiActionsService.selectedColor);
+                }
+            } else {
+                if(nucleotide.nodeName == 'text') {
+                    nucleotide.setAttribute("fill","#323232");
+                } else {
+                   nucleotide.setAttribute("stroke","#323232");
+                }
+            }
             this.selected = -1;
         }
     }
