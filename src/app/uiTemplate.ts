@@ -404,10 +404,7 @@ export class UiTemplateService {
                 this.displayNestedBaseStrs += this.nestedBaseStrs.get(key)![1].join('');
             }
         });
-        console.log(this.baseStrs)
-        console.log(this.nestedBaseStrs)
-        console.log(this.displayBaseStrs)
-        console.log(this.displayNestedBaseStrs)
+        
         return `
         <div style="width:100%;height:100%;z-index:0;position:absolute;">
             <svg preserveAspectRatio="xMidYMid meet" 
