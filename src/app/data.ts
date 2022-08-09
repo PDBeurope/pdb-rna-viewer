@@ -29,7 +29,7 @@ export type ApiData = {
 export class DataService {
     async getApiData(entityId: string, chainId: string, pdbId: string): Promise<ApiData | undefined> {
         try {
-            const apiUrl = `https://wwwdev.ebi.ac.uk/pdbe/static/rfam_images/${pdbId.toLowerCase()}_${entityId}_${chainId.toUpperCase()}.json`;
+            const apiUrl = `https://wwwdev.ebi.ac.uk/pdbe/static/entry/${pdbId.toLowerCase()}_${entityId}_${chainId.toUpperCase()}.json`;
             return await (await fetch(apiUrl)).json() as ApiData;
         } catch (e) { 
             this.handleError(e)
