@@ -13,7 +13,7 @@ export class UiTemplateService {
     private displayBaseStrs: string;
     private displayNestedBaseStrs: string;
 
-    menuStyle = 'position:relative;z-index:10;height:38px;line-height:38px;background-color:#696969;font-size:16px; color: #efefef;';
+    menuStyle = 'position:relative;z-index:10;height:7%;line-height:7%;background-color:#696969; color: #efefef;display:inline-block; vertical-align: top;';
 
     constructor(containerElement: HTMLElement, pluginOptions: PluginOptions, apiData: ApiData|undefined) {
         this.containerElement = containerElement;
@@ -30,14 +30,13 @@ export class UiTemplateService {
             ${this.actionButtons()}
         </div>
         <div id="mainMenu" style="${this.menuStyle}">
-                <img src="https://www.ebi.ac.uk/pdbe/entry/static/images/logos/PDBe/logo_T_64.png" style="height:15px; width: 15px; border:0;position:relative;margin-top: 11px;margin-left:10px;display: inline-block;" />
-                <div class="menuOptions" style="display: inline-block;float:right;margin-right:20px;">
-                    <form>
-                        <input type="checkbox" id="nestedBP" name="nestedBP">
-                        <label for="nestedBP"> Only nested BPs</label>
-                        <select class="menuSelectbox" style="display:inline-block;"><option value="">Nucleotides</option></select>
+                <div class="menuOptions" style="width:95%;float:center;display:inline-block;">
+                    <form style="margin-top:2%;">
+                        <input type="checkbox" id="nestedBP" name="nestedBP" style="width:5%; display: inline-block; float: left;>
+                        <label for="nestedBP" style="width:30%; display: inline-block; float: left;"> Only nested BPs</label>
+                        <select class="menuSelectbox" style="width:30%; display: inline-block; float: center;"><option value="">Nucleotides</option></select>
                         <div class="multiselect">
-                            <div class="selectBox" onclick="UiActionsService.showCheckboxes()" style="display:inline-block;">
+                            <div class="selectBox" onclick="UiActionsService.showCheckboxes()" style="display:inline-block;float:right;width:30%">
                                 <select>
                                     <option>Base Pairings</option>
                                 </select>
@@ -88,20 +87,30 @@ export class UiTemplateService {
 
     private createBPDropdown() {
         if(this.baseStrs.size > 0) {
-            let optionList = '<label for = "Checkbox_All"><input type="checkbox" id="Checkbox_All" />All</label>';
+            let optionList = '<table><tr><td><label for = "Checkbox_All"><input type="checkbox" id="Checkbox_All" /> All</label></td>';
+            var i = 1;
             this.baseStrs.forEach((value: [boolean, string[]], key: string) => {
-                if(key == 'cWW') {
-                    optionList = `${optionList}<label for = "Checkbox_${key}"><input type="checkbox" id="Checkbox_${key}" checked = true/>${key}</label>`;
-                } else {
-                    optionList = `${optionList}<label for = "Checkbox_${key}"><input type="checkbox" id="Checkbox_${key}"/>${key}</label>`;
+                if(i%2 == 0) {
+                    optionList = `${optionList}<tr>`
                 }
+                if(key == 'cWW') {
+                    optionList = `${optionList}<td><label for = "Checkbox_${key}"><input type="checkbox" id="Checkbox_${key}" checked = true/> ${key}</label></td>`;
+                } else {
+                    optionList = `${optionList}<td><label for = "Checkbox_${key}"><input type="checkbox" id="Checkbox_${key}"/> ${key}</label></td>`;
+                }
+                if(i%2 == 1) {
+                    optionList = `${optionList}</tr>`
+                }
+                i+=1
             });
+            optionList = `${optionList}</table>`
             const selectBoxEle = document.getElementById('checkboxes');
             selectBoxEle!.innerHTML = optionList;
             document.getElementById(`Checkbox_All`)?.addEventListener("change", this.changeBP.bind(this, "All"));
             this.baseStrs.forEach((value: [boolean, string[]], key: string) => {
                 document.getElementById(`Checkbox_${key}`)?.addEventListener("change", this.changeBP.bind(this, key));
             });
+            //selectBoxEle!.addEventListener("change", this.ChangeBP.bind(this));
         } 
     }
 
@@ -163,6 +172,15 @@ export class UiTemplateService {
             let pathID:string = `rnaviewBP rnaviewBP_${this.pluginOptions.pdbId}_${this.pluginOptions.chainId} ${type}_${start}_${end}`
             let n1: string = baseStr.nt1
             let n2: string = baseStr.nt2
+            if(type == 'cSH' || type == 'tSH' || type == 'cSW' || type == 'tSW' || type == 'cHW' || type == 'tHW') {
+                let temp = end 
+                end = start 
+                start = temp
+                let temp2 = n1
+                n1 = n2
+                n2 = temp2
+                type = type.charAt(0) + type.slice(-2).split('').reverse().join('')
+            }
             let x1 = this.locations.get(start)![0] + font_size/2.5
             let x2 = this.locations.get(end)![0] + font_size/2.5
             let y1 = this.locations.get(start)![1] - font_size/2.5
@@ -182,15 +200,11 @@ export class UiTemplateService {
             let ym = (y1_prime + y2_prime)/2
             let distance2 = distance - 2 * font_size
             let height = font_size/1.5
-            const defaultAction = `<path class="${pathID}" onmouseover="UiActionsService.showTooltip(evt, '${type} Base Pair ${n1}${start} - ${n2}${end}', '${pathID}', '${stroke}', '${fill}');" onmouseout="UiActionsService.hideTooltip('${pathID}');"`
-            if(x1 - x2 != 0) {
-                var phi = 90 + Math.atan2((y1 - y2),(x1-x2)) * 180/Math.PI
-            } else {
-                var phi = 0
-            }
+            const defaultAction = `<path class="${pathID}" onmouseover="UiActionsService.showTooltip(evt, '${n1}${start} - ${n2}${end}; ${type}', '${pathID}', '${stroke}', '${fill}');" onmouseout="UiActionsService.hideTooltip('${pathID}');"`
+            var phi = 270 + Math.atan2((y1 - y2),(x1-x2)) * 180/Math.PI
             if(type == 'cWW'){
                 if(n1 == 'G' && n2 == 'U' || n1 == 'U' && n2 == 'G') {
-                    baseMap.get(type)![1].push(`<path class="${pathID}" onmouseover="UiActionsService.showTooltip(evt, '${type} Base Pair ${n1}${start} - ${n2}${end}', '${pathID}', '#000', '#000');"
+                    baseMap.get(type)![1].push(`<path class="${pathID}" onmouseover="UiActionsService.showTooltip(evt, '${n1}${start} - ${n2}${end}; ${type}', '${pathID}', '#000', '#000');"
                     onmouseout="UiActionsService.hideTooltip('${pathID}');"
                     d="
                     M ${(x1_prime + x2_prime)/2 - font_size/4}, ${(y1_prime+y2_prime)/2}
@@ -200,7 +214,7 @@ export class UiTemplateService {
                     stroke="#000" stroke-width="${font_size/6} fill="${fill}"
                 />`)
                 } else{
-                baseMap.get(type)![1].push(`<path class="${pathID}" onmouseover="UiActionsService.showTooltip(evt,  '${type} Base Pair ${n1}${start} - ${n2}${end}', '${pathID}', '#000', '#000');" onmouseout="UiActionsService.hideTooltip('${pathID}');" stroke-width="${font_size/6}" data-stroke-color="#000" stroke="#000" d="M${x1_prime} ${y1_prime} ${x2_prime} ${y2_prime}"></path>`)
+                baseMap.get(type)![1].push(`<path class="${pathID}" onmouseover="UiActionsService.showTooltip(evt,  '${n1}${start} - ${n2}${end}; ${type}', '${pathID}', '#000', '#000');" onmouseout="UiActionsService.hideTooltip('${pathID}');" stroke-width="${font_size/6}" data-stroke-color="#000" stroke="#000" d="M${x1_prime} ${y1_prime} ${x2_prime} ${y2_prime}"></path>`)
                 } 
             } 
             else if (type == 'tWW') {
@@ -290,12 +304,26 @@ export class UiTemplateService {
     private svgTemplate(apiData: ApiData, FR3DData: any, FR3DNestedData: any): string { 
         const font_size:number = this.calculateFontSize(apiData)
         const lastPathIndex = apiData.svg_paths.length - 1;
+        var locations2: Map<any, number[]> = new Map();
+        apiData.svg_paths.forEach((pathStr: string, recordIndex: number) => {
+            if(recordIndex === 0 || recordIndex === 1 || recordIndex === lastPathIndex + 1) return;
+            let pathStrParsed:string[] = pathStr.split('M').join(',').split(',')
+            let x1Val: number = Number(pathStrParsed[1]) 
+            let y1Val: number = Number(pathStrParsed[2]) 
+            let xVal:number = Number(pathStrParsed[3]) 
+            let yVal:number = Number(pathStrParsed[4])
+            let midX = (xVal + x1Val)/2;
+            let midY = (yVal + y1Val)/2;
+            locations2.set(apiData.label_seq_ids[recordIndex - 1], [midX, midY])
+            this.locations.set(apiData.label_seq_ids[recordIndex - 1], [xVal, yVal])
+        });
         apiData.svg_paths.forEach((pathStr: string, recordIndex: number) => {
             if(recordIndex === 0 || recordIndex === 1 || recordIndex === (lastPathIndex + 1)) return;
             const pathEleClass = `rnaviewEle rnaviewEle_${this.pluginOptions.pdbId} rnaview_${this.pluginOptions.pdbId}_${apiData.label_seq_ids[recordIndex - 1]}`;
             let strokeColor = this.pluginOptions.theme?.color || '#323232';
             const strokeWide = this.pluginOptions.theme?.strokeWidth || '2';
             let isUnobserved = false;
+            
             if(apiData.unobserved_label_seq_ids && apiData.unobserved_label_seq_ids.indexOf(apiData.label_seq_ids[recordIndex - 1]) > -1) {
                 strokeColor = this.pluginOptions.theme?.unobservedColor || '#ccc';
                 isUnobserved = true;
@@ -303,7 +331,23 @@ export class UiTemplateService {
             let pathStrParsed:string[] = pathStr.split('M').join(',').split(',')
             let xVal:number = Number(pathStrParsed[3]) 
             let yVal:number = Number(pathStrParsed[4])
-            this.locations.set(apiData.label_seq_ids[recordIndex - 1], [xVal, yVal])
+            let deltaX: number = font_size/2
+            let deltaY: number = font_size/2
+            let newPathStr
+            if (recordIndex < (lastPathIndex)) {
+                let newX: number = locations2.get(apiData.label_seq_ids[recordIndex - 1])![0]
+                let newX2: number = locations2.get(apiData.label_seq_ids[recordIndex])![0]
+                let newY: number = locations2.get(apiData.label_seq_ids[recordIndex - 1])![1] 
+                let newY2: number = locations2.get(apiData.label_seq_ids[recordIndex])![1]
+                newPathStr = `M${newX + deltaX},${newY - deltaY},${newX2 + deltaX},${newY2 - deltaY}`
+            } else {
+                let newX: number = locations2.get(apiData.label_seq_ids[recordIndex - 1])![0]
+                let newY: number = locations2.get(apiData.label_seq_ids[recordIndex - 1])![1] 
+                let newX2: number = 2 * xVal - newX 
+                let newY2: number = 2 * yVal - newY
+                newPathStr = `M${newX + deltaX},${newY - deltaY},${newX2 + deltaX},${newY2 - deltaY}`
+            }
+            pathStr = newPathStr;
             this.pathStrs.push(
                 `<path 
                     class="${pathEleClass}" stroke-width="${strokeWide}" stroke="${strokeColor}" d="${pathStr}" 
@@ -360,7 +404,10 @@ export class UiTemplateService {
                 this.displayNestedBaseStrs += this.nestedBaseStrs.get(key)![1].join('');
             }
         });
-
+        console.log(this.baseStrs)
+        console.log(this.nestedBaseStrs)
+        console.log(this.displayBaseStrs)
+        console.log(this.displayNestedBaseStrs)
         return `
         <div style="width:100%;height:100%;z-index:0;position:absolute;">
             <svg preserveAspectRatio="xMidYMid meet" 
@@ -378,9 +425,9 @@ export class UiTemplateService {
         </div>
         <div id="tooltip" display="none" style="position:absolute; display: none;"></div> 
             <div style="width:100%;height:100%;z-index:2;position:absolute;">
-                <svg class="rnaTopoSvg" preserveAspectRatio="xMidYMid meet" 
+                <svg class="rnaTopoSvg" preserveAspectRatio="xMidYMid meet"
                     viewBox="0 0 ${apiData.dimensions.width} ${apiData.dimensions.height}" 
-                    style="width:100%;height:100%;">
+                    style="width:100%;height:100%">
                         <g class="rnaTopoSvg_${this.pluginOptions.pdbId}">${this.nucleotideStrs.join('')}${this.displayBaseStrs}</g>
                 </svg>
             </div>`
