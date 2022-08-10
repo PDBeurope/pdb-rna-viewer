@@ -7,6 +7,9 @@
   border: 1px solid #4b4a4a;
   background-color: #fff;
 }
+#mainMenu {
+  width: 100%;
+}
 .pdb-rna-view-error {
   margin-top: 20px;
   text-align: center;
