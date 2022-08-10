@@ -31,9 +31,11 @@ export class UiTemplateService {
         </div>
         <div id="mainMenu" style="${this.menuStyle}">
                 <div class="menuOptions" style="width:95%;float:center;display:inline-block;">
-                    <form style="margin-top:2%;">
+                    <form style="margin-top:1%;">
                         <input type="checkbox" id="nestedBP" name="nestedBP" style="width:5%; display: inline-block; float: left;>
-                        <label for="nestedBP" style="width:30%; display: inline-block; float: left;"> Only nested BPs</label>
+                        <label for="nestedBP" style="width:30%; display: inline-block; float: left; color: white">
+                            <span style="color:white"> Only nested BPs</span>
+                        </label>
                         <select class="menuSelectbox" style="width:30%; display: inline-block; float: center;"><option value="">Nucleotides</option></select>
                         <div class="multiselect">
                             <div class="selectBox" onclick="UiActionsService.showCheckboxes()" style="display:inline-block;float:right;width:30%">
