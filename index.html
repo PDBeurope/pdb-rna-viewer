@@ -13,7 +13,7 @@
         }
     </style>
     <!-- PDB RNA Viewer CSS -->
-    <link rel="stylesheet" type="text/css" href="build/pdb-rna-viewer-0.1.0.css">
+    <link rel="stylesheet" type="text/css" href="build/pdb-rna-viewer-0.2.0.css">
 
   </head>
 
@@ -27,7 +27,7 @@
     <script src="https://cdn.jsdelivr.net/npm/d3@5.9.2"></script>
     
     <!-- PDB RNA Viewer JS -->
-    <script type="text/javascript" src="build/pdb-rna-viewer-plugin-0.1.0.js"></script>
+    <script type="text/javascript" src="build/pdb-rna-viewer-plugin-0.2.0.js"></script>
     <script>
         //Create plugin instance
         const pluginInstance = new PdbRnaViewerPlugin();
@@ -36,9 +36,9 @@
         const viewContainer = document.getElementById('pdb-rna-viewer');
 
         const options = {
-          pdbId: '1c2w',
+          pdbId: '1y26',
           entityId: '1',
-          chainId: 'B',
+          chainId: 'X',
           subscribeEvents: true        } 
     
         //Call render method to display the 2D view

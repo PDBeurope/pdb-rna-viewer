@@ -1,6 +1,6 @@
 {
   "name": "pdb-rna-viewer",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "The PDB RNA viewer depicts the secondary structure of a RNA in a 2D representation.",
   "keywords": [
     "BioJS",

@@ -27,7 +27,7 @@ class PdbRnaViewerPlugin {
         this.options = options;
         this.apiData = await this.dataService.getApiData(this.options.entityId, this.options.chainId, this.options.pdbId);
         this.FR3DData = await this.dataService.getFR3DData(this.options.pdbId, this.options.chainId);
-        this.FR3DNestedData = await this.dataService.getFR3DNestedData(this.options.pdbId, this.options.chainId);
+        this.FR3DNestedData = this.filterNestedData(this.FR3DData);
         this.targetEle = <HTMLElement> target;
 
         this.uiTemplateService = new UiTemplateService(this.targetEle, this.options, this.apiData);
@@ -43,6 +43,14 @@ class PdbRnaViewerPlugin {
         } else {
             this.uiTemplateService.renderError('apiError');
         }
+    }
+
+    filterNestedData(data: any) {
+        const onlyNested = Object.assign({}, data);
+        onlyNested.annotations = data.annotations.filter(function(annotation: any) {
+            return annotation.crossing === "0";
+        });
+        return onlyNested;
     }
 
     selectResidue(label_seq_id: number, color?: string) {
