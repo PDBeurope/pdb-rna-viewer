@@ -17,7 +17,13 @@ const pluginConfig = {
               use: [
                 MiniCssExtractPlugin.loader,
                 { loader: 'css-loader', options: { sourceMap: false } },
-                { loader: 'sass-loader', options: { sourceMap: false } },
+                    {
+                      loader: 'sass-loader',
+                      options: {
+                        implementation: require('sass'), // força dart-sass
+                        sourceMap: false
+                      }
+                    },
               ]
           }
       ]
