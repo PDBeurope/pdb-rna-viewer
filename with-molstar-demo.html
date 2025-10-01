@@ -20,9 +20,19 @@
         #mainMenu {
           width: 502px;
         }
+        .controls {
+          display: flex;
+          width: 500px;
+          margin: 10px 0;
+        }
+        button {
+          margin-right: 10px;
+          padding: 6px 12px;
+          cursor: pointer;
+        }
     </style>
     <!-- PDB RNA Viewer CSS -->
-    <link rel="stylesheet" type="text/css" href="build/pdb-rna-viewer-0.3.5.css">
+    <link rel="stylesheet" type="text/css" href="build/pdb-rna-viewer-0.3.0-beta.css">
 
     <!-- CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/pdbe-molstar@latest/build/pdbe-molstar.css" />
@@ -38,9 +48,16 @@
         <!-- PDB Molstar container -->
         <div id="pdb-molstar"></div>
     </div>
+
+    <!-- Test controls -->
+    <div class="controls">
+      <button id="simulateClick1">Simulate protvista-click (1–5)</button>
+      <button id="simulateClick">Simulate protvista-click (1–30)</button>
+      <button id="simulateHover">Simulate protvista-mouseover (1–30)</button>
+    </div>
     
     <!-- PDB RNA Viewer JS -->
-    <script type="text/javascript" src="build/pdb-rna-viewer-plugin-0.3.5.js"></script>
+    <script type="text/javascript" src="build/pdb-rna-viewer-plugin-0.3.0-beta.js"></script>
 
     <!-- PDB Molstar Viewer JS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pdbe-molstar@latest/build/pdbe-molstar-plugin.js"></script>
@@ -56,7 +73,8 @@
           pdbId: '1y26',
           entityId: '1',
           chainId: 'X',
-          subscribeEvents: true        } 
+          subscribeEvents: true
+        } 
     
         //Call render method to display the 2D view
         pluginInstance.render(viewContainer, options);
@@ -67,6 +85,7 @@
         // Set options (All the available options are listed below in the documentation)
         const molstarOptions = {
             moleculeId: '1y26',
+            subscribeEvents: true
         };
         
         // Get element from HTML/Template to place the viewer 
@@ -74,7 +93,29 @@
 
         // Call render method to display the 3D view
         molstarViewerInstance.render(viewerContainer, molstarOptions);
-        
+
+        // --- Test buttons ---
+        document.getElementById("simulateClick1").addEventListener("click", () => {
+            const event = new CustomEvent('protvista-click', {
+                detail: { start: 1, end: 5 }
+            });
+            document.dispatchEvent(event);
+        });
+
+        document.getElementById("simulateClick").addEventListener("click", () => {
+            const event = new CustomEvent('protvista-click', {
+                detail: { start: 1, end: 30 }
+            });
+            document.dispatchEvent(event);
+        });
+
+        document.getElementById("simulateHover").addEventListener("click", () => {
+            const event = new CustomEvent('protvista-mouseover', {
+                detail: { start: 1, end: 30 }
+            });
+            document.dispatchEvent(event);
+        });
+
     </script>
   </body>
 

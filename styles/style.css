@@ -28,6 +28,13 @@
   z-index: 1;
   display: none;
 }
+.pdb-rna-view-tooltip-highlight {
+  position: absolute;
+  bottom: 30px;
+  right: 10px;
+  z-index: 1;
+  display: none;
+}
 .pdb-rna-view-btn-group{
   position: absolute;
   user-select: none;
