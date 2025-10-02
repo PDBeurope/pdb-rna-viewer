@@ -8,8 +8,86 @@
   background-color: #fff;
 }
 #mainMenu {
+  position: relative;
+  z-index: 10;
+  height: 7%;
+  line-height: 7%;
+  background-color: #696969;
+  color: #efefef;
+  display: inline-block;
+  vertical-align: top;
   width: 100%;
+  border-left: 1px solid #696969;
+  border-right: 1px solid #696969;
 }
+
+#mainMenu form {
+  margin-top: 1%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-right: 4px;
+}
+
+#nestedBP {
+  margin-right: 5px;
+}
+
+.menuSelectbox {
+  width: 30%;
+}
+
+.menu-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.menu-dropdown button {
+  background: #efefef;
+  color: #333;
+  border: 1px solid #dadada;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.menu-dropdown button:hover {
+  background: #ddd;
+}
+
+#bpFilterBtnIcon {
+  display: inline-block;
+  margin-left: 4px;
+}
+
+#bpFilterBtnIcon.active {
+  transform: rotate(180deg)translate(0px, -2px);
+}
+
+.menu-dropdown-content {
+  display: none;
+  position: absolute;
+  background: #fff;
+  border: 0.5px solid #dadada;
+  right: 0;
+  top: 100%;
+  z-index: 5;
+  min-width: 150px;
+}
+
+.menu-dropdown-content label {
+  display: block;
+  padding: 4px 8px;
+  cursor: pointer;
+  color: #000;
+}
+
+.menu-dropdown.show .menu-dropdown-content {
+  display: block;
+}
+
 .pdb-rna-view-error {
   margin-top: 20px;
   text-align: center;
@@ -87,7 +165,7 @@
   background:rgb(255, 255, 255);
   border: 0.5px #dadada solid;
   float: right;
-  width: 35%;
+  width: 165px;
 }
 
 #checkboxes label {
@@ -95,3 +173,24 @@
   color: rgb(0,0,0);
 }
 
+.help-icon {
+  scale: 0.9;
+}
+
+.help-tooltip {
+  max-width: 280px;
+  background: #fff;
+  border: 1px solid #ccc;
+  color: #333;
+  padding: 8px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1.4;
+  z-index: 1000;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.help-tooltip a {
+  color: #0066cc;
+  text-decoration: underline;
+}

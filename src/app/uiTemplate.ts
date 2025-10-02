@@ -12,8 +12,18 @@ export class UiTemplateService {
     private nestedBaseStrs: Map <string, [boolean, string[]]> = new Map();
     private displayBaseStrs: string;
     private displayNestedBaseStrs: string;
-
-    menuStyle = 'position:relative;z-index:10;height:7%;line-height:7%;background-color:#696969; color: #efefef;display:inline-block; vertical-align: top;';
+    private checkboxesExpanded = false;
+    private helpIconTooltips: Record<string, string> = {
+        bpFilterBtnHelp: `
+            Displays checkboxes that list the 12 
+            <a href='https://nakb.org/basics/basepairs.html#LW' target="_blank">Leontis–Westhof</a> 
+            base-pairing families. These families classify RNA base pairs by the edges involved 
+            (W = Watson–Crick, H = Hoogsteen, S = Sugar) and by the relative orientation of the 
+            glycosidic bonds (c = cis orientation, t = trans orientation).  
+            Selecting a checkbox highlights that family of base pairs in the 2D viewer, while 
+            <strong>All</strong> shows every family at once.
+        `
+    };
 
     constructor(containerElement: HTMLElement, pluginOptions: PluginOptions, apiData: ApiData|undefined) {
         this.containerElement = containerElement;
@@ -29,29 +39,13 @@ export class UiTemplateService {
             ${this.tooltip()}
             ${this.actionButtons()}
         </div>
-        <div id="mainMenu" style="${this.menuStyle}">
-                <div class="menuOptions" style="width:95%;float:center;display:inline-block;">
-                    <form style="margin-top:1%;">
-                        <input type="checkbox" id="nestedBP" name="nestedBP" style="width:5%; display: inline-block; float: left;>
-                        <label for="nestedBP" style="width:30%; display: inline-block; float: left; color: white">
-                            <span style="color:white"> Only nested BPs</span>
-                        </label>
-                        <select class="menuSelectbox" style="width:30%; display: inline-block; float: center;"><option value="">Nucleotides</option></select>
-                        <div class="multiselect">
-                            <div class="selectBox" onclick="UiActionsService.showCheckboxes()" style="display:inline-block;float:right;width:30%">
-                                <select>
-                                    <option>Base Pairings</option>
-                                </select>
-                                <div class="overSelect"></div>
-                            </div>
-                            <div id="checkboxes"></div>
-                        </div>
-                    </form>
-                </div>
-        </div>
+        ${this.mainMenu()}
         `;
-        this.createModeDropdown()
-        this.createBPDropdown()
+
+        this.createModeDropdown();
+        this.createBPDropdown();
+        this.bindBpFilterBtn();
+        this.bindHelpIcons();
         this.uiActionsService.applyButtonActions();
     }
 
@@ -117,13 +111,76 @@ export class UiTemplateService {
     }
 
     private createModeDropdown() {
-        let optionList = `<option value="0">Nucleotides</option><option value="1">Path</option></option>`;
+        let optionList = `<option value="0">View as Nucleotides</option><option value="1">View as Path</option></option>`;
         const selectBoxEle = this.containerElement.querySelector<HTMLElement>('.menuSelectbox');
         selectBoxEle!.innerHTML = optionList;
         selectBoxEle!.addEventListener("change", this.pathOrNucleotide.bind(this));
         const nestedBP = this.containerElement.querySelector<HTMLElement>('#nestedBP');
         nestedBP!.addEventListener("change", this.pathOrNucleotide.bind(this));
     }
+
+    private bindBpFilterBtn() {
+        document.getElementById("bpFilterBtn")?.addEventListener("click", () => {
+            document.querySelector(".menu-dropdown")?.classList.toggle("show");
+            document.getElementById("bpFilterBtnIcon")?.classList.toggle("active");
+            var checkboxes = document.getElementById("checkboxes");
+            if (!this.checkboxesExpanded) {
+                checkboxes!.style.display = "block";
+                this.checkboxesExpanded = true;
+            } else {
+                checkboxes!.style.display = "none";
+                this.checkboxesExpanded = false;
+            }
+        });
+    }
+
+    private bindHelpIcons() {
+        Object.keys(this.helpIconTooltips).forEach((id) => {
+            const icon = document.getElementById(id);
+            if (!icon) return;
+
+            // Create tooltip container once per icon
+            const tooltip = document.createElement("div");
+            tooltip.className = "help-tooltip";
+            tooltip.innerHTML = this.helpIconTooltips[id];
+            tooltip.style.display = "none";
+            document.body.appendChild(tooltip);
+
+            // Position helper
+            const showTooltip = () => {
+            const rect = icon.getBoundingClientRect();
+            tooltip.style.display = "block";
+            tooltip.style.position = "absolute";
+            tooltip.style.left = rect.right + 8 + window.scrollX + "px";
+            tooltip.style.top = rect.top + window.scrollY + "px";
+            };
+
+            const hideTooltip = () => {
+            tooltip.style.display = "none";
+            };
+
+            // Show when hovering icon
+            icon.addEventListener("mouseenter", showTooltip);
+            icon.addEventListener("mouseleave", () => {
+            // Delay hide to allow entering tooltip
+            setTimeout(() => {
+                if (!tooltip.matches(":hover") && !icon.matches(":hover")) {
+                hideTooltip();
+                }
+            }, 150);
+            });
+
+            // Keep open when hovering tooltip
+            tooltip.addEventListener("mouseleave", () => {
+            setTimeout(() => {
+                if (!tooltip.matches(":hover") && !icon.matches(":hover")) {
+                hideTooltip();
+                }
+            }, 150);
+            });
+        });
+    }
+
 
     private calculateFontSize(apiData: ApiData) {
         let xVals: number[] = [];
@@ -466,6 +523,37 @@ export class UiTemplateService {
                 </svg>
             </span>
         </div>`;
+    }
+
+    private mainMenu(): string {
+        return `
+        <div id="mainMenu">
+            <div class="menuOptions">
+            <form>
+                <select class="menuSelectbox">
+                <option value="">Nucleotides</option>
+                </select>
+
+                <div class="menu-dropdown">
+                <button type="button" id="bpFilterBtn">${this.helpIconSvg('bpFilterBtnHelp')} Filter Base Pairings <span id="bpFilterBtnIcon">▾</span></button>
+                <div id="checkboxes" class="menu-dropdown-content"></div>
+                </div>
+                
+                <div>
+                    <input type="checkbox" id="nestedBP" name="nestedBP" />
+                    <label for="nestedBP"><span>Only nested BPs</span></label>
+                </div>
+            </form>
+            </div>
+        </div>`;
+    }
+
+    private helpIconSvg(svgId: string): string {
+        return `<svg class="help-icon" id="${svgId}" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <g id="help_outline_24px">
+            <path id="ic_help_outline_24px" fill-rule="evenodd" clip-rule="evenodd" d="M1.5 9C1.5 4.86 4.86 1.5 9 1.5C13.14 1.5 16.5 4.86 16.5 9C16.5 13.14 13.14 16.5 9 16.5C4.86 16.5 1.5 13.14 1.5 9ZM9.75 12V13.5H8.25V12H9.75ZM9 15C5.6925 15 3 12.3075 3 9C3 5.6925 5.6925 3 9 3C12.3075 3 15 5.6925 15 9C15 12.3075 12.3075 15 9 15ZM6 7.5C6 5.8425 7.3425 4.5 9 4.5C10.6575 4.5 12 5.8425 12 7.5C12 8.46219 11.4075 8.97999 10.8306 9.48415C10.2833 9.96245 9.75 10.4285 9.75 11.25H8.25C8.25 9.88404 8.95659 9.34244 9.57783 8.86626C10.0652 8.49271 10.5 8.15941 10.5 7.5C10.5 6.675 9.825 6 9 6C8.175 6 7.5 6.675 7.5 7.5H6Z" fill="#1A1C1A"/>
+            </g>
+        </svg>`;
     }
 
     renderError(type?: string) {
