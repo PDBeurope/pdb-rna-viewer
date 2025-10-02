@@ -202,12 +202,12 @@ export class UiTemplateService {
             let ym = (y1_prime + y2_prime)/2
             let distance2 = distance - 2 * font_size
             let height = font_size/1.5
-            const defaultAction = `<path class="${pathID}" onmouseover="UiActionsService.showTooltip(evt, '${n1}${start} - ${n2}${end}; ${type}', '${pathID}', '${stroke}', '${fill}');" onmouseout="UiActionsService.hideTooltip('${pathID}');"`
+            const defaultAction = `<path class="${pathID}" onmouseover="UiActionsService.showTooltip('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', '${start} - ${end}', evt, '${n1}${start} - ${n2}${end}; ${type}', '${pathID}', '${stroke}', '${fill}', '${font_size/6}');" onmouseout="UiActionsService.hideTooltip('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', '${start} - ${end}', '${pathID}');"`
             var phi = 270 + Math.atan2((y1 - y2),(x1-x2)) * 180/Math.PI
             if(type == 'cWW'){
                 if(n1 == 'G' && n2 == 'U' || n1 == 'U' && n2 == 'G') {
-                    baseMap.get(type)![1].push(`<path class="${pathID}" onmouseover="UiActionsService.showTooltip(evt, '${n1}${start} - ${n2}${end}; ${type}', '${pathID}', '#000', '#000');"
-                    onmouseout="UiActionsService.hideTooltip('${pathID}');"
+                    baseMap.get(type)![1].push(`<path class="${pathID}" onmouseover="UiActionsService.showTooltip('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', '${start} - ${end}', evt, '${n1}${start} - ${n2}${end}; ${type}', '${pathID}', '#000', '#000', '${font_size/6}');"
+                    onmouseout="UiActionsService.hideTooltip('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', '${start} - ${end}', '${pathID}');"
                     d="
                     M ${(x1_prime + x2_prime)/2 - font_size/4}, ${(y1_prime+y2_prime)/2}
                     a ${font_size/4},${font_size/4} 0 1,0 ${font_size/2},0
@@ -216,7 +216,7 @@ export class UiTemplateService {
                     stroke="#000" stroke-width="${font_size/6} fill="${fill}"
                 />`)
                 } else{
-                baseMap.get(type)![1].push(`<path class="${pathID}" onmouseover="UiActionsService.showTooltip(evt,  '${n1}${start} - ${n2}${end}; ${type}', '${pathID}', '#000', '#000');" onmouseout="UiActionsService.hideTooltip('${pathID}');" stroke-width="${font_size/6}" data-stroke-color="#000" stroke="#000" d="M${x1_prime} ${y1_prime} ${x2_prime} ${y2_prime}"></path>`)
+                baseMap.get(type)![1].push(`<path class="${pathID}" onmouseover="UiActionsService.showTooltip('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', '${start} - ${end}', evt,  '${n1}${start} - ${n2}${end}; ${type}', '${pathID}', '#000', '#000', '${font_size/6}');" onmouseout="UiActionsService.hideTooltip('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', '${start} - ${end}', '${pathID}');" stroke-width="${font_size/6}" data-stroke-color="#000" stroke="#000" d="M${x1_prime} ${y1_prime} ${x2_prime} ${y2_prime}"></path>`)
                 } 
             } 
             else if (type == 'tWW') {
@@ -354,14 +354,18 @@ export class UiTemplateService {
                 `<path 
                     class="${pathEleClass}" style="cursor: pointer;" stroke-width="${strokeWide}" stroke="${strokeColor}" d="${pathStr}" 
                     data-stroke-color="${strokeColor}" 
-                    onclick="UiActionsService.selectNucleotide('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', ${apiData.label_seq_ids[recordIndex - 1]}', 'click', ${isUnobserved}, '${apiData.sequence[recordIndex - 2]}, event, ${this.pluginOptions.theme?.highlightColor ? "'"+this.pluginOptions.theme.highlightColor+"'" : undefined})" 
+                    onclick="UiActionsService.selectNucleotide('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', ${apiData.label_seq_ids[recordIndex - 1]}, 'click', ${isUnobserved}, '${apiData.sequence[recordIndex - 2]}', event, ${this.pluginOptions.theme?.highlightColor ? "'"+this.pluginOptions.theme.highlightColor+"'" : undefined})" 
                     onmouseover="UiActionsService.highlightNucleotide('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', ${apiData.label_seq_ids[recordIndex - 1]}, ${isUnobserved}, '${apiData.sequence[recordIndex - 2]}', event, ${this.pluginOptions.theme?.highlightColor ? "'"+this.pluginOptions.theme.highlightColor+"'" : undefined})" 
                     onmouseout="UiActionsService.unHighlightNucleotide('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', ${apiData.label_seq_ids[recordIndex - 1]}, ${isUnobserved}, event)">
                 </path>`)
             this.nucleotideStrs.push(
-                `<text href="#${pathEleClass}" class="${pathEleClass}" style="cursor: pointer;" x="${xVal}" y="${yVal}" font-size = "${font_size}px" onclick="UiActionsService.selectNucleotide('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', ${apiData.label_seq_ids[recordIndex - 1]}, 'click', ${isUnobserved}, '${apiData.sequence[recordIndex - 2]}',
-                event, ${this.pluginOptions.theme?.highlightColor ? "'"+this.pluginOptions.theme.highlightColor+"'" : undefined})" onmouseover="UiActionsService.highlightNucleotide('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', ${apiData.label_seq_ids[recordIndex - 1]}, ${isUnobserved}, '${apiData.sequence[recordIndex - 2]}',
-                event, ${this.pluginOptions.theme?.highlightColor ? "'"+this.pluginOptions.theme.highlightColor+"'" : undefined})" onmouseout="UiActionsService.unHighlightNucleotide('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', ${apiData.label_seq_ids[recordIndex - 1]}, ${isUnobserved}, event)">${apiData.sequence[recordIndex - 2]}</text>`)
+                `<text
+                    href="#${pathEleClass}" class="${pathEleClass}" style="cursor: pointer;" x="${xVal}" y="${yVal}" font-size = "${font_size}px"
+                    onclick="UiActionsService.selectNucleotide('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', ${apiData.label_seq_ids[recordIndex - 1]}, 'click', ${isUnobserved}, '${apiData.sequence[recordIndex - 2]}', event, ${this.pluginOptions.theme?.highlightColor ? "'"+this.pluginOptions.theme.highlightColor+"'" : undefined})" 
+                    onmouseover="UiActionsService.highlightNucleotide('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', ${apiData.label_seq_ids[recordIndex - 1]}, ${isUnobserved}, '${apiData.sequence[recordIndex - 2]}', event, ${this.pluginOptions.theme?.highlightColor ? "'"+this.pluginOptions.theme.highlightColor+"'" : undefined})" 
+                    onmouseout="UiActionsService.unHighlightNucleotide('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', ${apiData.label_seq_ids[recordIndex - 1]}, ${isUnobserved}, event)">
+                 ${apiData.sequence[recordIndex - 2]}
+                </text>`)
             });
         
         let baseArray = FR3DData.annotations;

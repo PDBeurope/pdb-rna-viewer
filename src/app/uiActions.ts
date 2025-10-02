@@ -11,6 +11,7 @@ export class UiActionsService {
     private static selected: Map<number, string> = new Map();
     private static highlighted: Map<number, string> = new Map();
     private static tooltipSelectedColor: string = ''
+    private static tooltipSelectedWidth: number = 0
     private static fillColor: string = ''
     private static expanded: boolean = false
     private static zoomBehavior: ZoomBehavior<SVGSVGElement, null>
@@ -113,11 +114,9 @@ export class UiActionsService {
         ttEle!.innerHTML = `<strong>${isUnobserved ? 'Unobserved ' : ''}${rangeString}</strong>`;
 
         if (!isUnobserved && !doNotReport) {
-            label_seq_ids.forEach(id => {
-                const evData = { pdbId, label_seq_id, entityId }
-                const textElement: any = document.querySelector(`.rnaview_${pdbId}_${id}`);
-                CustomEvents.dispatchCustomEvent(UiActionsService.pdbevents['PDB.RNA.viewer.mouseover'], evData, textElement);
-            });
+            const evData = { pdbId, label_seq_ids, entityId }
+            const textElement: any = document.querySelector(`.rnaTopoSvg_${pdbId}`);
+            CustomEvents.dispatchCustomEvent(UiActionsService.pdbevents['PDB.RNA.viewer.mouseover'], evData, textElement);
         }
     }
 
@@ -177,11 +176,9 @@ export class UiActionsService {
         ttEle!.innerHTML = `<strong>${isUnobserved ? 'Unobserved ' : ''}Selected ${rangeString}</strong>`;
 
         if(!isUnobserved && !doNotReport) {
-            ids.forEach(id => {
-                const evData = { pdbId, label_seq_id: id, entityId }
-                const textElement: any = document.querySelector(`.rnaview_${pdbId}_${id}`);
-                CustomEvents.dispatchCustomEvent(UiActionsService.pdbevents['PDB.RNA.viewer.click'], evData, textElement);
-            });
+            const evData = { pdbId, label_seq_ids: ids, entityId }
+            const textElement: any = document.querySelector(`.rnaTopoSvg_${pdbId}`);
+            CustomEvents.dispatchCustomEvent(UiActionsService.pdbevents['PDB.RNA.viewer.click'], evData, textElement);
         }
     }
 
@@ -291,7 +288,11 @@ export class UiActionsService {
         UiActionsService.clearNucleotides(pdbId, 'selection', label_seq_ids);
     }
 
-    static showTooltip(evt: any, text: string, path: string, color: string, fill: string) {
+    static showTooltip(
+        pdbId: string, entityId: string, label_seq_range: string,
+        evt: any, text: string, path: string,
+        color: string, fill: string, width: string
+    ) {
         const tooltip = document.getElementById("tooltip");
         tooltip!.id = "tooltip"
         tooltip!.innerHTML = text;
@@ -299,17 +300,31 @@ export class UiActionsService {
         tooltip!.style.left = evt.layerX + 'px';
         tooltip!.style.top = evt.layerY + 'px'; 
         this.tooltipSelectedColor = color;
+        this.tooltipSelectedWidth = parseFloat(width);
         this.fillColor = fill;
+        (<any>document.querySelector(`svg.rnaTopoSvg`))!.getElementsByClassName(path)[0].setAttribute("stroke-width", parseFloat(width)*2.5);
         (<any>document.querySelector(`svg.rnaTopoSvg`))!.getElementsByClassName(path)[0].setAttribute("stroke","orange");
         (<any>document.querySelector(`svg.rnaTopoSvg`))!.getElementsByClassName(path)[0].setAttribute("fill","orange");
+        
+        const ids = label_seq_range.split(' - ').map((id) => parseInt(id));
+        const evData = { pdbId, label_seq_ids: ids, entityId }
+        const textElement: any = document.querySelector(`.rnaTopoSvg_${pdbId}`);
+        CustomEvents.dispatchCustomEvent(UiActionsService.pdbevents['PDB.RNA.viewer.click'], evData, textElement);
       }
       
-    static hideTooltip(path: string) {
+    static hideTooltip(pdbId: string, entityId: string, label_seq_range: string, path: string) {
         var tooltip = document.getElementById("tooltip");
         tooltip!.style.display = "none";
+        (<any>document.querySelector(`svg.rnaTopoSvg`))!.getElementsByClassName(path)[0].setAttribute("stroke-width", this.tooltipSelectedWidth);
         (<any>document.querySelector(`svg.rnaTopoSvg`))!.getElementsByClassName(path)[0].setAttribute("stroke", `${this.tooltipSelectedColor}`);
         (<any>document.querySelector(`svg.rnaTopoSvg`))!.getElementsByClassName(path)[0].setAttribute("fill", `${this.fillColor}`);
+        
+        const ids = label_seq_range.split(' - ').map((id) => parseInt(id));
+        const evData = { pdbId, label_seq_ids: ids, entityId }
+        const textElement: any = document.querySelector(`.rnaTopoSvg_${pdbId}`);
+        CustomEvents.dispatchCustomEvent(UiActionsService.pdbevents['PDB.RNA.viewer.deselect'], evData, textElement);
     }
+
     static zoomToNucleotides(pdbId: string, label_seq_ids: number[]) {
         const svg = select<SVGSVGElement, null>(`.rnaTopoSvg`);
         const svgNode = svg.node();
@@ -320,6 +335,8 @@ export class UiActionsService {
 
         const doZoom = () => {
             let resHeight: number | undefined = undefined;
+            let boxHeight: number | undefined = undefined;
+            let boxWidth: number | undefined = undefined;
             let scale: number | undefined = undefined;
             let cxSum = 0;
             let cySum = 0;
@@ -334,12 +351,22 @@ export class UiActionsService {
                 const bbox = nucleotide.getBBox();
                 const rect = nucleotide.getBoundingClientRect();
 
-                if (resHeight === undefined) {
+                if (resHeight === undefined && nucleotide.nodeName === 'text') {
                     resHeight = rect.height;
 
                     const height = svgNode.clientHeight;
                     const desiredHeightPx = height * 0.05;
                     scale = desiredHeightPx / resHeight;
+                }
+                if (boxHeight === undefined && boxWidth === undefined && nucleotide.nodeName === 'path') {
+                    boxHeight = rect.height;
+                    boxWidth = rect.width;
+
+                    // Use the larger of width or height to normalize
+                    const boxSize = Math.max(boxHeight, boxWidth);
+                    const height = svgNode.clientHeight;
+                    const desiredHeightPx = height * 0.05;
+                    scale = desiredHeightPx / boxSize;
                 }
 
                 cxSum += bbox.x + bbox.width / 2;
