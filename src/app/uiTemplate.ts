@@ -8,6 +8,7 @@ export class UiTemplateService {
     private locations: Map<any, number[]> = new Map();
     private pathStrs: string[] = [];  
     private nucleotideStrs: string[] = [];
+    private bpLabels: { label: string, pathID: string }[] = [];
     private baseStrs: Map <string, [boolean, string[]]> = new Map();
     private nestedBaseStrs: Map <string, [boolean, string[]]> = new Map();
     private displayBaseStrs: string;
@@ -37,6 +38,7 @@ export class UiTemplateService {
             ${this.svgTemplate(apiData, FR3DData, FR3DNestedData)}
             ${this.title()}
             ${this.tooltip()}
+            ${this.bpListBtnDialog()}
             ${this.actionButtons()}
         </div>
         ${this.mainMenu()}
@@ -44,6 +46,7 @@ export class UiTemplateService {
 
         this.createModeDropdown();
         this.createBPDropdown();
+        this.bindBpListDialog();
         this.bindBpFilterBtn();
         this.bindHelpIcons();
         this.uiActionsService.applyButtonActions();
@@ -181,6 +184,72 @@ export class UiTemplateService {
         });
     }
 
+    private bindBpListDialog() {
+        const btn = this.containerElement.querySelector<HTMLButtonElement>(`#rnaTopologyBPList-${this.pluginOptions.pdbId}`);
+        const dialog = this.containerElement.querySelector<HTMLDivElement>(`#bpListDialog-${this.pluginOptions.pdbId}`);
+        const nestedBP = this.containerElement.querySelector<HTMLInputElement>('#nestedBP');
+
+        if (!btn || !dialog || !nestedBP) return;
+
+        btn.addEventListener("click", () => {
+            this.renderBpListDialog(true);
+        });
+    }
+
+    private renderBpListDialog(toggle: boolean) {
+        const dialog = this.containerElement.querySelector<HTMLDivElement>(`#bpListDialog-${this.pluginOptions.pdbId}`);
+        const nestedBP = this.containerElement.querySelector<HTMLInputElement>('#nestedBP');
+
+        if (!dialog || !nestedBP) return;
+        // Toggle dialog visibility
+        if (toggle) dialog.style.display = dialog.style.display === "none" ? "block" : "none";
+
+        // Clear old content
+        dialog.innerHTML = "";
+
+        // Decide whether to use nested or normal
+        const useNested = nestedBP.checked;
+        const visibleLabels = this.bpLabels.filter(bp => {
+            // Only keep those actually displayed in the SVG
+            return (useNested ? this.displayNestedBaseStrs : this.displayBaseStrs).includes(bp.pathID);
+        });
+
+        // Fill dialog
+        const ul = document.createElement("ul");
+        ul.style.maxHeight = "200px";
+        ul.style.overflowY = "auto";
+        ul.style.padding = "8px";
+        ul.style.listStyle = "none";
+
+        visibleLabels.forEach(({ label, pathID }) => {
+            const li = document.createElement("li");
+            li.textContent = label;
+            li.style.cursor = "pointer";
+
+            // Hover = trigger mouseover highlight
+            li.addEventListener("mouseenter", () => {
+                const pathEl = document.querySelector<SVGPathElement>(`.${pathID.replace(/\s+/g, '.')}`);
+                pathEl?.dispatchEvent(new Event("mouseover", { bubbles: true }));
+
+                const tooltip = document.getElementById('tooltip');
+                if (tooltip) tooltip.style.display = "none";
+            });
+            li.addEventListener("mouseleave", () => {
+                const pathEl = document.querySelector<SVGPathElement>(`.${pathID.replace(/\s+/g, '.')}`);
+                pathEl?.dispatchEvent(new Event("mouseout", { bubbles: true }));
+            });
+
+            // Click = trigger click select
+            li.addEventListener("click", () => {
+                const pathEl = document.querySelector<SVGPathElement>(`.${pathID.replace(/\s+/g, '.')}`);
+                pathEl?.dispatchEvent(new Event("click", { bubbles: true }));
+            });
+
+            ul.appendChild(li);
+        });
+
+        dialog.appendChild(ul);
+    }
 
     private calculateFontSize(apiData: ApiData) {
         let xVals: number[] = [];
@@ -220,7 +289,8 @@ export class UiTemplateService {
             (<any>document.querySelector(`svg.rnaTopoSvg`))!.getElementsByClassName(`rnaTopoSvg_${this.pluginOptions.pdbId}`)[0].innerHTML = this.nucleotideStrs.join('') + displayBP;
         } else if(selectedValue == 1) {
             (<any>document.querySelector(`svg.rnaTopoSvg`))!.getElementsByClassName(`rnaTopoSvg_${this.pluginOptions.pdbId}`)[0].innerHTML = this.pathStrs.join('') + displayBP;
-        } 
+        }
+        this.renderBpListDialog(false);
     }
 
     private calcBaseStrs(baseStr: any, baseMap: any, font_size: number) {
@@ -231,6 +301,10 @@ export class UiTemplateService {
             let pathID:string = `rnaviewBP rnaviewBP_${this.pluginOptions.pdbId}_${this.pluginOptions.chainId} ${type}_${start}_${end}`
             let n1: string = baseStr.nt1
             let n2: string = baseStr.nt2
+            const label = `${n1}${start} - ${n2}${end}; ${type}`;
+            if (!this.bpLabels.some(bp => bp.pathID === pathID)) {
+                this.bpLabels.push({ label, pathID });
+            }
             if(type == 'cSH' || type == 'tSH' || type == 'cSW' || type == 'tSW' || type == 'cHW' || type == 'tHW') {
                 let temp = end 
                 end = start 
@@ -453,6 +527,7 @@ export class UiTemplateService {
         this.nestedBaseStrs.set('cSS', [false, []]);
         this.nestedBaseStrs.set('tSS', [false, []]);
 
+        this.bpLabels = [];
         nestedBaseArray.forEach((baseStr: any) => {
             this.calcBaseStrs(baseStr, this.nestedBaseStrs, font_size)
         })
@@ -525,6 +600,15 @@ export class UiTemplateService {
         </div>`;
     }
 
+    private bpListBtnDialog(): string {
+        return `
+        <div class="pdb-rna-view-btn-group left">
+            <button type="button" class="bp-list-btn" id="rnaTopologyBPList-${this.pluginOptions.pdbId}">Base Pairings List</button>
+        </div>
+        <div id="bpListDialog-${this.pluginOptions.pdbId}" class="bp-list-dialog" style="display:none"></div>
+        `;
+    }
+
     private mainMenu(): string {
         return `
         <div id="mainMenu">
@@ -538,7 +622,7 @@ export class UiTemplateService {
                 <button type="button" id="bpFilterBtn">${this.helpIconSvg('bpFilterBtnHelp')} Filter Base Pairings <span id="bpFilterBtnIcon">▾</span></button>
                 <div id="checkboxes" class="menu-dropdown-content"></div>
                 </div>
-                
+
                 <div>
                     <input type="checkbox" id="nestedBP" name="nestedBP" />
                     <label for="nestedBP"><span>Only nested BPs</span></label>

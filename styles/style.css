@@ -194,3 +194,30 @@
   color: #0066cc;
   text-decoration: underline;
 }
+
+.pdb-rna-view-btn-group.left {
+  right: 0px;
+  left: 10px;
+}
+
+.bp-list-btn {
+  background: #efefef;
+  color: #333;
+  border: 1px solid #dadada;
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+
+.bp-list-dialog {
+  position: absolute;
+  top: 40px; /* adjust near zoom buttons */
+  left: 10px;
+  width: 180px;
+  background: white;
+  border: 1px solid #ccc;
+  z-index: 999;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+.bp-list-dialog ul li:hover {
+  background: #f0f0f0;
+}
