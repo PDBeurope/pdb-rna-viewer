@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+
+    <style>
+        .vis-container {
+          display: flex;
+        }
+        #pdb-rna-viewer {
+          width: 500px;
+          height: 500px;
+        }
+        #pdb-molstar {
+          width: 400px;
+          height: 300px;
+          position: relative;
+          margin: 20px;
+        }
+        #mainMenu {
+          width: 502px;
+        }
+        .controls {
+          display: flex;
+          width: 500px;
+          margin: 10px 0;
+        }
+        button {
+          margin-right: 10px;
+          padding: 6px 12px;
+          cursor: pointer;
+        }
+    </style>
+    <!-- PDB RNA Viewer CSS -->
+    <link rel="stylesheet" type="text/css" href="build/pdb-rna-viewer-0.3.0.css">
+
+    <!-- CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/pdbe-molstar@latest/build/pdbe-molstar.css" />
+  </head>
+
+  <body>
+    <h4>PDB RNA Viewer with Molstar Plugin Demo</h4>
+    
+    <div class="vis-container">
+        <!-- PDB RNA Viewer container -->
+        <div id="pdb-rna-viewer"></div>
+
+        <!-- PDB Molstar container -->
+        <div id="pdb-molstar"></div>
+    </div>
+
+    <!-- Test controls -->
+    <div class="controls">
+      <button id="simulateClick1">Simulate protvista-click (1–5)</button>
+      <button id="simulateClick">Simulate protvista-click (1–30)</button>
+      <button id="simulateHover">Simulate protvista-mouseover (1–30)</button>
+      <button id="simulateHoverOut">Simulate protvista-mouseout</button>
+    </div>
+    
+    <!-- PDB RNA Viewer JS -->
+    <script type="text/javascript" src="build/pdb-rna-viewer-plugin-0.3.0.js"></script>
+
+    <!-- PDB Molstar Viewer JS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pdbe-molstar@latest/build/pdbe-molstar-plugin.js"></script>
+
+    <script>
+        //Create plugin instance
+        const pluginInstance = new PdbRnaViewerPlugin();
+
+        //Get element from HTML/Template to place the view
+        const viewContainer = document.getElementById('pdb-rna-viewer');
+
+        const options = {
+          pdbId: '1y26',
+          entityId: '1',
+          chainId: 'X',
+          subscribeEvents: true
+        } 
+    
+        //Call render method to display the 2D view
+        pluginInstance.render(viewContainer, options);
+
+        // Create plugin instance for Molstar
+        const molstarViewerInstance = new PDBeMolstarPlugin();
+
+        // Set options (All the available options are listed below in the documentation)
+        const molstarOptions = {
+            moleculeId: '1y26',
+            subscribeEvents: true
+        };
+        
+        // Get element from HTML/Template to place the viewer 
+        const viewerContainer = document.getElementById('pdb-molstar');
+
+        // Call render method to display the 3D view
+        molstarViewerInstance.render(viewerContainer, molstarOptions);
+
+        // --- Test buttons ---
+        document.getElementById("simulateClick1").addEventListener("click", () => {
+            const event = new CustomEvent('protvista-click', {
+                detail: { start: 1, end: 5 }
+            });
+            document.dispatchEvent(event);
+        });
+
+        document.getElementById("simulateClick").addEventListener("click", () => {
+            const event = new CustomEvent('protvista-click', {
+                detail: { start: 1, end: 30 }
+            });
+            document.dispatchEvent(event);
+        });
+
+        document.getElementById("simulateHover").addEventListener("click", () => {
+            const event = new CustomEvent('protvista-mouseover', {
+                detail: { start: 1, end: 30 }
+            });
+            document.dispatchEvent(event);
+        });
+
+        document.getElementById("simulateHoverOut").addEventListener("click", () => {
+            const event = new CustomEvent('protvista-mouseout', {} );
+            document.dispatchEvent(event);
+        });
+
+    </script>
+  </body>
+
+</html>

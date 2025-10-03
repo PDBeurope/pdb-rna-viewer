@@ -8,12 +8,23 @@ export class UiTemplateService {
     private locations: Map<any, number[]> = new Map();
     private pathStrs: string[] = [];  
     private nucleotideStrs: string[] = [];
+    private bpLabels: { label: string, pathID: string }[] = [];
     private baseStrs: Map <string, [boolean, string[]]> = new Map();
     private nestedBaseStrs: Map <string, [boolean, string[]]> = new Map();
     private displayBaseStrs: string;
     private displayNestedBaseStrs: string;
-
-    menuStyle = 'position:relative;z-index:10;height:7%;line-height:7%;background-color:#696969; color: #efefef;display:inline-block; vertical-align: top;';
+    private checkboxesExpanded = false;
+    private helpIconTooltips: Record<string, string> = {
+        bpFilterBtnHelp: `
+            Displays checkboxes that list the 12 
+            <a href='https://nakb.org/basics/basepairs.html#LW' target="_blank">Leontis–Westhof</a> 
+            base-pairing families. These families classify RNA base pairs by the edges involved 
+            (W = Watson–Crick, H = Hoogsteen, S = Sugar) and by the relative orientation of the 
+            glycosidic bonds (c = cis orientation, t = trans orientation).  
+            Selecting a checkbox highlights that family of base pairs in the 2D viewer, while 
+            <strong>All</strong> shows every family at once.
+        `
+    };
 
     constructor(containerElement: HTMLElement, pluginOptions: PluginOptions, apiData: ApiData|undefined) {
         this.containerElement = containerElement;
@@ -27,31 +38,17 @@ export class UiTemplateService {
             ${this.svgTemplate(apiData, FR3DData, FR3DNestedData)}
             ${this.title()}
             ${this.tooltip()}
+            ${this.bpListBtnDialog()}
             ${this.actionButtons()}
         </div>
-        <div id="mainMenu" style="${this.menuStyle}">
-                <div class="menuOptions" style="width:95%;float:center;display:inline-block;">
-                    <form style="margin-top:1%;">
-                        <input type="checkbox" id="nestedBP" name="nestedBP" style="width:5%; display: inline-block; float: left;>
-                        <label for="nestedBP" style="width:30%; display: inline-block; float: left; color: white">
-                            <span style="color:white"> Only nested BPs</span>
-                        </label>
-                        <select class="menuSelectbox" style="width:30%; display: inline-block; float: center;"><option value="">Nucleotides</option></select>
-                        <div class="multiselect">
-                            <div class="selectBox" onclick="UiActionsService.showCheckboxes()" style="display:inline-block;float:right;width:30%">
-                                <select>
-                                    <option>Base Pairings</option>
-                                </select>
-                                <div class="overSelect"></div>
-                            </div>
-                            <div id="checkboxes"></div>
-                        </div>
-                    </form>
-                </div>
-        </div>
+        ${this.mainMenu()}
         `;
-        this.createModeDropdown()
-        this.createBPDropdown()
+
+        this.createModeDropdown();
+        this.createBPDropdown();
+        this.bindBpListDialog();
+        this.bindBpFilterBtn();
+        this.bindHelpIcons();
         this.uiActionsService.applyButtonActions();
     }
 
@@ -117,12 +114,141 @@ export class UiTemplateService {
     }
 
     private createModeDropdown() {
-        let optionList = `<option value="0">Nucleotides</option><option value="1">Path</option></option>`;
+        let optionList = `<option value="0">View as Nucleotides</option><option value="1">View as Path</option></option>`;
         const selectBoxEle = this.containerElement.querySelector<HTMLElement>('.menuSelectbox');
         selectBoxEle!.innerHTML = optionList;
         selectBoxEle!.addEventListener("change", this.pathOrNucleotide.bind(this));
         const nestedBP = this.containerElement.querySelector<HTMLElement>('#nestedBP');
         nestedBP!.addEventListener("change", this.pathOrNucleotide.bind(this));
+    }
+
+    private bindBpFilterBtn() {
+        document.getElementById("bpFilterBtn")?.addEventListener("click", () => {
+            document.querySelector(".menu-dropdown")?.classList.toggle("show");
+            document.getElementById("bpFilterBtnIcon")?.classList.toggle("active");
+            var checkboxes = document.getElementById("checkboxes");
+            if (!this.checkboxesExpanded) {
+                checkboxes!.style.display = "block";
+                this.checkboxesExpanded = true;
+            } else {
+                checkboxes!.style.display = "none";
+                this.checkboxesExpanded = false;
+            }
+        });
+    }
+
+    private bindHelpIcons() {
+        Object.keys(this.helpIconTooltips).forEach((id) => {
+            const icon = document.getElementById(id);
+            if (!icon) return;
+
+            // Create tooltip container once per icon
+            const tooltip = document.createElement("div");
+            tooltip.className = "help-tooltip";
+            tooltip.innerHTML = this.helpIconTooltips[id];
+            tooltip.style.display = "none";
+            document.body.appendChild(tooltip);
+
+            // Position helper
+            const showTooltip = () => {
+            const rect = icon.getBoundingClientRect();
+            tooltip.style.display = "block";
+            tooltip.style.position = "absolute";
+            tooltip.style.left = rect.right + 8 + window.scrollX + "px";
+            tooltip.style.top = rect.top + window.scrollY + "px";
+            };
+
+            const hideTooltip = () => {
+            tooltip.style.display = "none";
+            };
+
+            // Show when hovering icon
+            icon.addEventListener("mouseenter", showTooltip);
+            icon.addEventListener("mouseleave", () => {
+            // Delay hide to allow entering tooltip
+            setTimeout(() => {
+                if (!tooltip.matches(":hover") && !icon.matches(":hover")) {
+                hideTooltip();
+                }
+            }, 150);
+            });
+
+            // Keep open when hovering tooltip
+            tooltip.addEventListener("mouseleave", () => {
+            setTimeout(() => {
+                if (!tooltip.matches(":hover") && !icon.matches(":hover")) {
+                hideTooltip();
+                }
+            }, 150);
+            });
+        });
+    }
+
+    private bindBpListDialog() {
+        const btn = this.containerElement.querySelector<HTMLButtonElement>(`#rnaTopologyBPList-${this.pluginOptions.pdbId}`);
+        const dialog = this.containerElement.querySelector<HTMLDivElement>(`#bpListDialog-${this.pluginOptions.pdbId}`);
+        const nestedBP = this.containerElement.querySelector<HTMLInputElement>('#nestedBP');
+
+        if (!btn || !dialog || !nestedBP) return;
+
+        btn.addEventListener("click", () => {
+            this.renderBpListDialog(true);
+        });
+    }
+
+    private renderBpListDialog(toggle: boolean) {
+        const dialog = this.containerElement.querySelector<HTMLDivElement>(`#bpListDialog-${this.pluginOptions.pdbId}`);
+        const nestedBP = this.containerElement.querySelector<HTMLInputElement>('#nestedBP');
+
+        if (!dialog || !nestedBP) return;
+        // Toggle dialog visibility
+        if (toggle) dialog.style.display = dialog.style.display === "none" ? "block" : "none";
+
+        // Clear old content
+        dialog.innerHTML = "";
+
+        // Decide whether to use nested or normal
+        const useNested = nestedBP.checked;
+        const visibleLabels = this.bpLabels.filter(bp => {
+            // Only keep those actually displayed in the SVG
+            return (useNested ? this.displayNestedBaseStrs : this.displayBaseStrs).includes(bp.pathID);
+        });
+
+        // Fill dialog
+        const ul = document.createElement("ul");
+        ul.style.maxHeight = "200px";
+        ul.style.overflowY = "auto";
+        ul.style.padding = "8px";
+        ul.style.listStyle = "none";
+
+        visibleLabels.forEach(({ label, pathID }) => {
+            const li = document.createElement("li");
+            li.textContent = label;
+            li.style.cursor = "pointer";
+
+            // Hover = trigger mouseover highlight
+            li.addEventListener("mouseenter", () => {
+                const pathEl = document.querySelector<SVGPathElement>(`.${pathID.replace(/\s+/g, '.')}`);
+                pathEl?.dispatchEvent(new Event("mouseover", { bubbles: true }));
+
+                const tooltip = document.getElementById('tooltip');
+                if (tooltip) tooltip.style.display = "none";
+            });
+            li.addEventListener("mouseleave", () => {
+                const pathEl = document.querySelector<SVGPathElement>(`.${pathID.replace(/\s+/g, '.')}`);
+                pathEl?.dispatchEvent(new Event("mouseout", { bubbles: true }));
+            });
+
+            // Click = trigger click select
+            li.addEventListener("click", () => {
+                const pathEl = document.querySelector<SVGPathElement>(`.${pathID.replace(/\s+/g, '.')}`);
+                pathEl?.dispatchEvent(new Event("click", { bubbles: true }));
+            });
+
+            ul.appendChild(li);
+        });
+
+        dialog.appendChild(ul);
     }
 
     private calculateFontSize(apiData: ApiData) {
@@ -163,7 +289,8 @@ export class UiTemplateService {
             (<any>document.querySelector(`svg.rnaTopoSvg`))!.getElementsByClassName(`rnaTopoSvg_${this.pluginOptions.pdbId}`)[0].innerHTML = this.nucleotideStrs.join('') + displayBP;
         } else if(selectedValue == 1) {
             (<any>document.querySelector(`svg.rnaTopoSvg`))!.getElementsByClassName(`rnaTopoSvg_${this.pluginOptions.pdbId}`)[0].innerHTML = this.pathStrs.join('') + displayBP;
-        } 
+        }
+        this.renderBpListDialog(false);
     }
 
     private calcBaseStrs(baseStr: any, baseMap: any, font_size: number) {
@@ -174,6 +301,10 @@ export class UiTemplateService {
             let pathID:string = `rnaviewBP rnaviewBP_${this.pluginOptions.pdbId}_${this.pluginOptions.chainId} ${type}_${start}_${end}`
             let n1: string = baseStr.nt1
             let n2: string = baseStr.nt2
+            const label = `${n1}${start} - ${n2}${end}; ${type}`;
+            if (!this.bpLabels.some(bp => bp.pathID === pathID)) {
+                this.bpLabels.push({ label, pathID });
+            }
             if(type == 'cSH' || type == 'tSH' || type == 'cSW' || type == 'tSW' || type == 'cHW' || type == 'tHW') {
                 let temp = end 
                 end = start 
@@ -202,12 +333,12 @@ export class UiTemplateService {
             let ym = (y1_prime + y2_prime)/2
             let distance2 = distance - 2 * font_size
             let height = font_size/1.5
-            const defaultAction = `<path class="${pathID}" onmouseover="UiActionsService.showTooltip(evt, '${n1}${start} - ${n2}${end}; ${type}', '${pathID}', '${stroke}', '${fill}');" onmouseout="UiActionsService.hideTooltip('${pathID}');"`
+            const defaultAction = `<path class="${pathID}" onmouseover="UiActionsService.showTooltip('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', '${start} - ${end}', evt, '${n1}${start} - ${n2}${end}; ${type}', '${pathID}', '${stroke}', '${fill}', '${font_size/6}');" onmouseout="UiActionsService.hideTooltip('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', '${start} - ${end}', '${pathID}');"`
             var phi = 270 + Math.atan2((y1 - y2),(x1-x2)) * 180/Math.PI
             if(type == 'cWW'){
                 if(n1 == 'G' && n2 == 'U' || n1 == 'U' && n2 == 'G') {
-                    baseMap.get(type)![1].push(`<path class="${pathID}" onmouseover="UiActionsService.showTooltip(evt, '${n1}${start} - ${n2}${end}; ${type}', '${pathID}', '#000', '#000');"
-                    onmouseout="UiActionsService.hideTooltip('${pathID}');"
+                    baseMap.get(type)![1].push(`<path class="${pathID}" onmouseover="UiActionsService.showTooltip('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', '${start} - ${end}', evt, '${n1}${start} - ${n2}${end}; ${type}', '${pathID}', '#000', '#000', '${font_size/6}');"
+                    onmouseout="UiActionsService.hideTooltip('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', '${start} - ${end}', '${pathID}');"
                     d="
                     M ${(x1_prime + x2_prime)/2 - font_size/4}, ${(y1_prime+y2_prime)/2}
                     a ${font_size/4},${font_size/4} 0 1,0 ${font_size/2},0
@@ -216,7 +347,7 @@ export class UiTemplateService {
                     stroke="#000" stroke-width="${font_size/6} fill="${fill}"
                 />`)
                 } else{
-                baseMap.get(type)![1].push(`<path class="${pathID}" onmouseover="UiActionsService.showTooltip(evt,  '${n1}${start} - ${n2}${end}; ${type}', '${pathID}', '#000', '#000');" onmouseout="UiActionsService.hideTooltip('${pathID}');" stroke-width="${font_size/6}" data-stroke-color="#000" stroke="#000" d="M${x1_prime} ${y1_prime} ${x2_prime} ${y2_prime}"></path>`)
+                baseMap.get(type)![1].push(`<path class="${pathID}" onmouseover="UiActionsService.showTooltip('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', '${start} - ${end}', evt,  '${n1}${start} - ${n2}${end}; ${type}', '${pathID}', '#000', '#000', '${font_size/6}');" onmouseout="UiActionsService.hideTooltip('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', '${start} - ${end}', '${pathID}');" stroke-width="${font_size/6}" data-stroke-color="#000" stroke="#000" d="M${x1_prime} ${y1_prime} ${x2_prime} ${y2_prime}"></path>`)
                 } 
             } 
             else if (type == 'tWW') {
@@ -352,16 +483,20 @@ export class UiTemplateService {
             pathStr = newPathStr;
             this.pathStrs.push(
                 `<path 
-                    class="${pathEleClass}" stroke-width="${strokeWide}" stroke="${strokeColor}" d="${pathStr}" 
+                    class="${pathEleClass}" style="cursor: pointer;" stroke-width="${strokeWide}" stroke="${strokeColor}" d="${pathStr}" 
                     data-stroke-color="${strokeColor}" 
-                    onclick="UiActionsService.selectNucleotide('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', ${apiData.label_seq_ids[recordIndex - 1]}', 'click', ${isUnobserved}, '${apiData.sequence[recordIndex - 2]}, event, ${this.pluginOptions.theme?.highlightColor ? "'"+this.pluginOptions.theme.highlightColor+"'" : undefined})" 
-                    onmouseover="UiActionsService.selectNucleotide('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', ${apiData.label_seq_ids[recordIndex - 1]}, 'mouseover', ${isUnobserved}, '${apiData.sequence[recordIndex - 2]}', event, ${this.pluginOptions.theme?.highlightColor ? "'"+this.pluginOptions.theme.highlightColor+"'" : undefined})" 
-                    onmouseout="UiActionsService.unSelectNucleotide('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', ${apiData.label_seq_ids[recordIndex - 1]}, ${isUnobserved}, event, '${strokeColor}')">
+                    onclick="UiActionsService.selectNucleotide('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', ${apiData.label_seq_ids[recordIndex - 1]}, 'click', ${isUnobserved}, '${apiData.sequence[recordIndex - 2]}', event, ${this.pluginOptions.theme?.highlightColor ? "'"+this.pluginOptions.theme.highlightColor+"'" : undefined})" 
+                    onmouseover="UiActionsService.highlightNucleotide('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', ${apiData.label_seq_ids[recordIndex - 1]}, ${isUnobserved}, '${apiData.sequence[recordIndex - 2]}', event, ${this.pluginOptions.theme?.highlightColor ? "'"+this.pluginOptions.theme.highlightColor+"'" : undefined})" 
+                    onmouseout="UiActionsService.unHighlightNucleotide('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', ${apiData.label_seq_ids[recordIndex - 1]}, ${isUnobserved}, event)">
                 </path>`)
             this.nucleotideStrs.push(
-                `<text href="#${pathEleClass}" class="${pathEleClass}" x="${xVal}" y="${yVal}" font-size = "${font_size}px" onclick="UiActionsService.selectNucleotide('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', ${apiData.label_seq_ids[recordIndex - 1]}, 'click', ${isUnobserved}, '${apiData.sequence[recordIndex - 2]}',
-                event, ${this.pluginOptions.theme?.highlightColor ? "'"+this.pluginOptions.theme.highlightColor+"'" : undefined})" onmouseover="UiActionsService.selectNucleotide('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', ${apiData.label_seq_ids[recordIndex - 1]}, 'mouseover', ${isUnobserved}, '${apiData.sequence[recordIndex - 2]}',
-                event, ${this.pluginOptions.theme?.highlightColor ? "'"+this.pluginOptions.theme.highlightColor+"'" : undefined})" onmouseout="UiActionsService.unSelectNucleotide('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', ${apiData.label_seq_ids[recordIndex - 1]}, ${isUnobserved}, event, '${strokeColor}')">${apiData.sequence[recordIndex - 2]}</text>`)
+                `<text
+                    href="#${pathEleClass}" class="${pathEleClass}" style="cursor: pointer;" x="${xVal}" y="${yVal}" font-size = "${font_size}px"
+                    onclick="UiActionsService.selectNucleotide('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', ${apiData.label_seq_ids[recordIndex - 1]}, 'click', ${isUnobserved}, '${apiData.sequence[recordIndex - 2]}', event, ${this.pluginOptions.theme?.highlightColor ? "'"+this.pluginOptions.theme.highlightColor+"'" : undefined})" 
+                    onmouseover="UiActionsService.highlightNucleotide('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', ${apiData.label_seq_ids[recordIndex - 1]}, ${isUnobserved}, '${apiData.sequence[recordIndex - 2]}', event, ${this.pluginOptions.theme?.highlightColor ? "'"+this.pluginOptions.theme.highlightColor+"'" : undefined})" 
+                    onmouseout="UiActionsService.unHighlightNucleotide('${this.pluginOptions.pdbId}', '${this.pluginOptions.entityId}', ${apiData.label_seq_ids[recordIndex - 1]}, ${isUnobserved}, event)">
+                 ${apiData.sequence[recordIndex - 2]}
+                </text>`)
             });
         
         let baseArray = FR3DData.annotations;
@@ -392,6 +527,7 @@ export class UiTemplateService {
         this.nestedBaseStrs.set('cSS', [false, []]);
         this.nestedBaseStrs.set('tSS', [false, []]);
 
+        this.bpLabels = [];
         nestedBaseArray.forEach((baseStr: any) => {
             this.calcBaseStrs(baseStr, this.nestedBaseStrs, font_size)
         })
@@ -438,7 +574,8 @@ export class UiTemplateService {
     }
 
     private tooltip(): string {
-        return  `<span class="pdb-rna-view-tooltip" id="${this.pluginOptions.pdbId}-rnaTopologyTooltip"></span>`;
+        return  `<span class="pdb-rna-view-tooltip" id="${this.pluginOptions.pdbId}-rnaTopologyTooltip"></span>
+        <span class="pdb-rna-view-tooltip-highlight" id="${this.pluginOptions.pdbId}-rnaTopologyTooltipHighlight"></span>`;
     }
 
     private actionButtons(): string {
@@ -461,6 +598,46 @@ export class UiTemplateService {
                 </svg>
             </span>
         </div>`;
+    }
+
+    private bpListBtnDialog(): string {
+        return `
+        <div class="pdb-rna-view-btn-group left">
+            <button type="button" class="bp-list-btn" id="rnaTopologyBPList-${this.pluginOptions.pdbId}">Base Pairings List</button>
+        </div>
+        <div id="bpListDialog-${this.pluginOptions.pdbId}" class="bp-list-dialog" style="display:none"></div>
+        `;
+    }
+
+    private mainMenu(): string {
+        return `
+        <div id="mainMenu">
+            <div class="menuOptions">
+            <form>
+                <select class="menuSelectbox">
+                <option value="">Nucleotides</option>
+                </select>
+
+                <div class="menu-dropdown">
+                <button type="button" id="bpFilterBtn">${this.helpIconSvg('bpFilterBtnHelp')} Filter Base Pairings <span id="bpFilterBtnIcon">▾</span></button>
+                <div id="checkboxes" class="menu-dropdown-content"></div>
+                </div>
+
+                <div>
+                    <input type="checkbox" id="nestedBP" name="nestedBP" />
+                    <label for="nestedBP"><span>Only nested BPs</span></label>
+                </div>
+            </form>
+            </div>
+        </div>`;
+    }
+
+    private helpIconSvg(svgId: string): string {
+        return `<svg class="help-icon" id="${svgId}" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <g id="help_outline_24px">
+            <path id="ic_help_outline_24px" fill-rule="evenodd" clip-rule="evenodd" d="M1.5 9C1.5 4.86 4.86 1.5 9 1.5C13.14 1.5 16.5 4.86 16.5 9C16.5 13.14 13.14 16.5 9 16.5C4.86 16.5 1.5 13.14 1.5 9ZM9.75 12V13.5H8.25V12H9.75ZM9 15C5.6925 15 3 12.3075 3 9C3 5.6925 5.6925 3 9 3C12.3075 3 15 5.6925 15 9C15 12.3075 12.3075 15 9 15ZM6 7.5C6 5.8425 7.3425 4.5 9 4.5C10.6575 4.5 12 5.8425 12 7.5C12 8.46219 11.4075 8.97999 10.8306 9.48415C10.2833 9.96245 9.75 10.4285 9.75 11.25H8.25C8.25 9.88404 8.95659 9.34244 9.57783 8.86626C10.0652 8.49271 10.5 8.15941 10.5 7.5C10.5 6.675 9.825 6 9 6C8.175 6 7.5 6.675 7.5 7.5H6Z" fill="#1A1C1A"/>
+            </g>
+        </svg>`;
     }
 
     renderError(type?: string) {

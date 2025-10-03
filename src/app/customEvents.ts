@@ -30,10 +30,9 @@ export namespace CustomEvents {
             if(typeof e.detail !== 'undefined'){
                 const startResidue = parseInt(e.detail.start);
                 const endResidue = parseInt(e.detail.end);
-                pluginCtx.clearSelection();
-                for(let i = startResidue; i <= endResidue; i++) {
-                    pluginCtx.selectResidue(i, e.detail.color);
-                }
+                pluginCtx.clearHighlight(true);
+                pluginCtx.clearSelection(undefined, true);
+                pluginCtx.selectResidueRange(startResidue, endResidue, undefined, true);
             }           
         });
 
@@ -41,33 +40,32 @@ export namespace CustomEvents {
             if(typeof e.detail !== 'undefined'){
                 const startResidue = parseInt(e.detail.start);
                 const endResidue = parseInt(e.detail.end);
-                pluginCtx.clearHighlight();
-                for(let i = startResidue; i <= endResidue; i++) {
-                    pluginCtx.highlightResidue(i, e.detail.color);
-                }
+                pluginCtx.clearHighlight(true);
+                pluginCtx.highlightResidueRange(startResidue, endResidue, undefined, true);
             }           
         });
     
         document.addEventListener('protvista-mouseout', function(e: any){
-            pluginCtx.clearHighlight();
+            pluginCtx.clearHighlight(true);
         });
 
         document.addEventListener("PDB.molstar.click", (e: any) => {
             if(typeof e.eventData !== 'undefined' && typeof e.eventData.residueNumber !== 'undefined' && e.eventData.auth_asym_id === pluginCtx.options.chainId){
-                pluginCtx.clearSelection();
-                pluginCtx.selectResidue(e.eventData.residueNumber);
+                // pluginCtx.clearSelection();
+                pluginCtx.clearHighlight(true);
+                pluginCtx.selectResidue(e.eventData.residueNumber, undefined, true);
             }
         });
 
         document.addEventListener("PDB.molstar.mouseover", (e: any) => {
             if(typeof e.eventData !== 'undefined' && typeof e.eventData.residueNumber !== 'undefined' && e.eventData.auth_asym_id === pluginCtx.options.chainId){
-                pluginCtx.clearHighlight();
-                pluginCtx.highlightResidue(e.eventData.residueNumber);
+                pluginCtx.clearHighlight(true);
+                pluginCtx.highlightResidue(e.eventData.residueNumber, undefined, true);
             }
         });
 
         document.addEventListener("PDB.molstar.mouseout", () => {
-            pluginCtx.clearHighlight();
+            pluginCtx.clearHighlight(true);
         });
     }
 

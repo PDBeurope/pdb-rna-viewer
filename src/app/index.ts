@@ -25,8 +25,8 @@ class PdbRnaViewerPlugin {
             return;
         }
         this.options = options;
-        this.apiData = await this.dataService.getApiData(this.options.entityId, this.options.chainId, this.options.pdbId);
-        this.FR3DData = await this.dataService.getFR3DData(this.options.pdbId, this.options.chainId);
+        this.apiData = options.apiData ?? await this.dataService.getApiData(this.options.entityId, this.options.chainId, this.options.pdbId);
+        this.FR3DData = options.FR3DData ?? await this.dataService.getFR3DData(this.options.pdbId, this.options.chainId);
         this.FR3DNestedData = this.filterNestedData(this.FR3DData);
         this.targetEle = <HTMLElement> target;
 
@@ -53,20 +53,38 @@ class PdbRnaViewerPlugin {
         return onlyNested;
     }
 
-    selectResidue(label_seq_id: number, color?: string) {
-        UiActionsService.selectNucleotide(this.options.pdbId, this.options.entityId, label_seq_id, 'mouseover', false, color);
+    selectResidue(label_seq_id: number, color?: string, doNotReport?: boolean) {
+        UiActionsService.selectNucleotide(this.options.pdbId, this.options.entityId, label_seq_id, 'click', false, undefined, undefined, color, false, doNotReport);
     }
 
-    clearSelection(label_seq_id: number) {
-        UiActionsService.unSelectNucleotide(this.options.pdbId, this.options.entityId, label_seq_id, false);
+    selectResidueRange(start_label_seq_id: number, end_label_seq_id: number, color?: string, doNotReport?: boolean) {
+        const label_seq_ids: number[] = [];
+        for (let i = start_label_seq_id; i <= end_label_seq_id; i++) {
+            label_seq_ids.push(i);
+        }
+        UiActionsService.selectNucleotide(this.options.pdbId, this.options.entityId, label_seq_ids, 'click', false, color, undefined, undefined, true, doNotReport);
     }
 
-    highlightResidue(label_seq_id: number, color?: string) {
-        UiActionsService.colorNucleotide(this.options.pdbId, label_seq_id, color, 'highlight');
+    clearSelection(label_seq_id: number, doNotReport?: boolean) {
+        UiActionsService.unSelectNucleotide(this.options.pdbId, this.options.entityId, label_seq_id, 'click', false, undefined, undefined, doNotReport);
     }
 
-    clearHighlight() {
-        UiActionsService.clearHighlight(this.options.pdbId);
+    highlightResidue(label_seq_id: number, color?: string, doNotReport?: boolean) {
+        // UiActionsService.colorNucleotide(this.options.pdbId, label_seq_id, color, 'highlight');
+        UiActionsService.highlightNucleotide(this.options.pdbId, this.options.entityId, label_seq_id, false, undefined, undefined, color, doNotReport);
+    }
+
+    highlightResidueRange(start_label_seq_id: number, end_label_seq_id: number, color?: string, doNotReport?: boolean) {
+        const label_seq_ids: number[] = [];
+        for (let i = start_label_seq_id; i <= end_label_seq_id; i++) {
+            label_seq_ids.push(i);
+        }
+        UiActionsService.highlightNucleotide(this.options.pdbId, this.options.entityId, label_seq_ids, false, undefined, undefined, color, doNotReport);
+    }
+
+    clearHighlight(doNotReport?: boolean) {
+        // UiActionsService.clearHighlight(this.options.pdbId);
+        UiActionsService.unHighlightNucleotide(this.options.pdbId, this.options.entityId, undefined, false, undefined, doNotReport);
     }
 }
 

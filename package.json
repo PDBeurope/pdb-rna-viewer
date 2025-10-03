@@ -1,6 +1,6 @@
 {
   "name": "pdb-rna-viewer",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "The PDB RNA viewer depicts the secondary structure of a RNA in a 2D representation.",
   "keywords": [
     "BioJS",
@@ -40,6 +40,9 @@
     "@babel/plugin-transform-runtime": "^7.15.8",
     "@babel/preset-env": "^7.15.8",
     "@babel/runtime": "^7.15.4",
+    "@types/d3-selection": "^3.0.11",
+    "@types/d3-transition": "^3.0.9",
+    "@types/d3-zoom": "^3.0.8",
     "babel-loader": "^8.2.2",
     "concurrently": "^6.3.0",
     "cpx2": "^4.0.0",
@@ -52,8 +55,8 @@
     "gulp-header": "^2.0.9",
     "http-server": "^13.0.2",
     "mini-css-extract-plugin": "^2.4.2",
-    "node-sass": "^6.0.1",
     "raw-loader": "^4.0.2",
+    "sass": "^1.93.2",
     "sass-loader": "^12.2.0",
     "style-loader": "^3.3.0",
     "typescript": "^4.4.4",
@@ -61,6 +64,7 @@
     "webpack-cli": "^4.9.0"
   },
   "dependencies": {
+    "d3": "^6.7.0",
     "lit-element": "^3.0.1",
     "tslib": "^2.3.1"
   }
