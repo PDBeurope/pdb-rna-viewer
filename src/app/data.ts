@@ -10,7 +10,9 @@ export type PluginOptions = {
     chainId: string,
     entityId: string,
     theme?: ThemeParam,
-    subscribeEvents?: boolean
+    subscribeEvents?: boolean,
+    apiData?: ApiData,
+    FR3DData?: JSON
 }
 
 export type ApiData = {

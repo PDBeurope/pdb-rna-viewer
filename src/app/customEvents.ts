@@ -30,6 +30,7 @@ export namespace CustomEvents {
             if(typeof e.detail !== 'undefined'){
                 const startResidue = parseInt(e.detail.start);
                 const endResidue = parseInt(e.detail.end);
+                pluginCtx.clearHighlight(true);
                 pluginCtx.clearSelection(undefined, true);
                 pluginCtx.selectResidueRange(startResidue, endResidue, undefined, true);
             }           
@@ -51,6 +52,7 @@ export namespace CustomEvents {
         document.addEventListener("PDB.molstar.click", (e: any) => {
             if(typeof e.eventData !== 'undefined' && typeof e.eventData.residueNumber !== 'undefined' && e.eventData.auth_asym_id === pluginCtx.options.chainId){
                 // pluginCtx.clearSelection();
+                pluginCtx.clearHighlight(true);
                 pluginCtx.selectResidue(e.eventData.residueNumber, undefined, true);
             }
         });

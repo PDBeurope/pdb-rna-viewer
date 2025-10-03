@@ -25,8 +25,8 @@ class PdbRnaViewerPlugin {
             return;
         }
         this.options = options;
-        this.apiData = await this.dataService.getApiData(this.options.entityId, this.options.chainId, this.options.pdbId);
-        this.FR3DData = await this.dataService.getFR3DData(this.options.pdbId, this.options.chainId);
+        this.apiData = options.apiData ?? await this.dataService.getApiData(this.options.entityId, this.options.chainId, this.options.pdbId);
+        this.FR3DData = options.FR3DData ?? await this.dataService.getFR3DData(this.options.pdbId, this.options.chainId);
         this.FR3DNestedData = this.filterNestedData(this.FR3DData);
         this.targetEle = <HTMLElement> target;
 
